@@ -1,33 +1,53 @@
 const db = require("../../connection/Connection");
 const bcrypt = require("bcrypt");
-// ==================================== (add users api) ====================================
+
 // ===================================== (bcrypt.hash) =====================================
 
 const addAdminUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    if (!username || !password) {
+    if (!username || !email || !password) {
       return res
         .status(400)
-        .json({ message: "Username and email and password are required." });
+        .json({ message: "Username, email, and password are required." });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sqlQuery =
-      "INSERT INTO admin_users (username, email, password) VALUES (?, ?, ?)";
-    const data = [username, email, hashedPassword];
-
-    db.query(sqlQuery, data, (err) => {
+    const checkEmail =
+      "SELECT * FROM admin_users WHERE username = ? OR email = ?";
+    db.query(checkEmail, [username, email], async (err, result) => {
       if (err) {
         console.error("Database error:", err.message);
-        return res.status(500).json({
-          message: "Database query error. Please try again later.",
-        });
+        return res
+          .status(500)
+          .json({ message: "Database error. Try again later." });
       }
 
-      return res.status(201).json({
-        message: "User added successfully.",
+      if (result.length > 0) {
+        return res
+          .status(400)
+          .json({
+            message: "Username Or Email already exists. Try another one!",
+          });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const sqlQuery =
+        "INSERT INTO admin_users (username, email, password) VALUES (?, ?, ?)";
+      const data = [username, email, hashedPassword];
+
+      db.query(sqlQuery, data, (err) => {
+        if (err) {
+          console.error("Database error:", err.message);
+          return res
+            .status(500)
+            .json({ message: "Database query error. Please try again later." });
+        }
+
+        return res
+          .status(201)
+          .json({ message: "Admin User added successfully." });
       });
     });
   } catch (error) {
@@ -78,11 +98,23 @@ const loginAdminUser = async (req, res) => {
 // ==================================== (show users api) ====================================
 const getAdminUsers = (req, res) => {
   const sqlQuery = "SELECT * FROM admin_users";
-  db.query(sqlQuery, (err, results) => {
+  db.query(sqlQuery, (err, results) => {  
     if (err) {
       return res.status(500).json({ error: "Database query error" });
     }
     res.json({ results });
+  });
+};
+
+// ==================================== (show users by id api) ====================================
+const getAdminUsersById = (req, res) => {
+  const { id } = req.params;
+  const sqlQuery = "SELECT * FROM admin_users WHERE id = ?";
+  db.query(sqlQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: "Database query error" });
+    }
+    res.json(results);
   });
 };
 
@@ -98,9 +130,50 @@ const deleteAdminUser = (req, res) => {
   });
 };
 
+// ==================================== (update users api) ====================================
+
+const updateAdminUser = async (req, res) => {
+  const { id } = req.params;
+  const { username, email, password } = req.body;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const sqlQuery =
+    "UPDATE admin_users SET username = ?, email = ?, password = ? WHERE id = ?";
+  const data = [username, email, hashedPassword, id];
+
+  db.query(sqlQuery, data, (err) => {
+    if (err) {
+      console.error("Database error:", err.message);
+      return res.status(500).json({
+        message: "Database query error. Please try again later.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "User updated successfully.",
+    });
+  });
+};
+
+
+
+const updateStatus = ( (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const query = "UPDATE admin_users SET status = ? WHERE id = ?";
+  db.query(query, [status, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    return res.json({ message: "User status updated successfully!" });
+  });
+});
+
 module.exports = {
   addAdminUser,
   loginAdminUser,
   getAdminUsers,
   deleteAdminUser,
+  getAdminUsersById,
+  updateAdminUser,
+  updateStatus
 };

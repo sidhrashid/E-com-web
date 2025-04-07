@@ -1,13 +1,22 @@
 const express = require("express");
 const Category = require("../../controller/pages/ProductsCategory");
-const upload = require("../../middleware/fileHandler");
+const {categoryFolder} = require("../../middleware/fileHandler");
 
 const router = express.Router();
 
 router.get("/category", Category.getCategories);
 router.get("/getcategorybyid/:id", Category.getCategoryById);
 router.delete("/deletecategory/:id", Category.deleteCategory);
-router.post("/addcategory", upload.single("image"), Category.addCategory);
-router.put("/updatecategory/:id", upload.single("image"), Category.updateCategory);
+router.post(
+  "/addcategory",
+  categoryFolder.single("image"),
+  Category.addCategory
+);
+router.put(
+  "/updatecategory/:id",
+  categoryFolder.single("image"),
+  Category.updateCategory
+);
+router.put("/updatestatus/:id", Category.updateStatus);
 
 module.exports = router;

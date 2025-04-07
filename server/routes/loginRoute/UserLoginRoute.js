@@ -4,8 +4,9 @@ const userLogin = require("../../controller/Login/UserLogin");
 const router = express.Router();
 
 router.post("/registernewuser", userLogin.registerNewUser);
-router.post("/loginuser", userLogin.loginUser);
+router.post("/loginclientuser", userLogin.loginClientUser);
+router.post("/send-otp", userLogin.sendOtp);
 
-router.post("/google-signup", userLogin.googleSignup);
+
 
 module.exports = router;

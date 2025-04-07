@@ -1,4 +1,8 @@
 const db = require("../../connection/Connection");
+const fs = require("fs");
+const path = require("path");
+
+// ========================================get all products=====================================
 
 const getAllProducts = (req, res) => {
   const q = "SELECT * FROM products";
@@ -9,6 +13,8 @@ const getAllProducts = (req, res) => {
     return res.json(result);
   });
 };
+
+// ========================================get products by id===================================
 const getProductsById = (req, res) => {
   const id = req.params.id;
   const q = "SELECT * FROM products WHERE id =?";
@@ -20,14 +26,15 @@ const getProductsById = (req, res) => {
   });
 };
 
+// ========================================add products=========================================
 const addProducts = (req, res) => {
-  const { name, price, description, category_id } = req.body;
+  const { name, price, description, category_id   } = req.body;
   const image = req.file ? req.file.filename : null;
 
   const q =
-    "INSERT INTO products (name, price, description, image,  category_id) VALUES (?,?,?,?,?)";
+    "INSERT INTO products (name, price, description, image, category_id, status) VALUES (?,?,?,?,? ,?)";
 
-  const values = [name, price, description, image, category_id];
+  const values = [name, price, description, image, category_id ,"active"];
 
   db.query(q, values, (err, data) => {
     if (err) {
@@ -42,34 +49,76 @@ const addProducts = (req, res) => {
   });
 };
 
+// ========================================update products======================================
 const updateProducts = (req, res) => {
-  const { id } = req.params;
-  const { name, price, description } = req.body;
-  console.log(req.body);
-  const image = req.file ? req.file.filename : req.body.image;
-  const q =
-    "UPDATE products SET name =? ,price =? ,description =?, image=? WHERE id =?";
-  const values = [name, price, description, image, id];
-  db.query(q, values, (err, result) => {
-    if (err) {
-      return res.status(500);
+  const id = req.params.id;
+  console.log(id);
+  const { name, price, description, category_id } = req.body;
+  const newImage = req.file ? req.file.filename : null;
+
+  const selectQuery = "SELECT image FROM products WHERE id = ?";
+  db.query(selectQuery, [id], (err, data) => {
+    if (err) return res.status(500).json({ message: "Database Error" });
+
+    const oldImage = data[0]?.image;
+
+    if (newImage && oldImage) {
+      const oldImagePath = path.join(
+        __dirname,
+        "../../../client/public/uploads/productImage",
+        oldImage
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlink(oldImagePath, (err) => {
+          if (err) console.error("Error deleting old image:", err);
+        });
+      }
     }
-    return res.json(result);
+
+    const updateQuery =
+      "UPDATE products SET name =?, price =?, description =?, category_id=?, image=? WHERE id =?";
+    const values = [name, price, description, category_id, newImage || oldImage, id];
+    db.query(updateQuery, values, (err, result) => {
+      if (err)
+        return res.status(500).json({ message: "Error updating product" });
+
+      return res.json({ message: "Product updated successfully", result });
+    });
   });
 };
 
+// ========================================delete products======================================
 
 const deleteProducts = (req, res) => {
   const id = req.params.id;
-  const q = "DELETE FROM products WHERE id =?";
-  db.query(q, id, (err, result) => {
-    if (err) {
-      return res.status(500);
+  const selectImage = "SELECT image FROM products WHERE id = ?";
+  db.query(selectImage, [id], (err, data) => {
+    if (err) return res.status(500).json({ message: "Database Error" });
+
+    const imageName = data[0]?.image;
+    if (imageName) {
+      const imagePath = path.join(
+        __dirname,
+        "../../../client/public/uploads/productImage",
+        imageName
+      );
+
+      fs.unlink(imagePath, (err) => {
+        if (err) console.error("Error deleting image:", err);
+      });
     }
-    return res.json(200);
+
+    const q = "DELETE FROM products WHERE id =?";
+    db.query(q, id, (err, result) => {
+      if (err) {
+        return res.status(500);
+      }
+      return res.json(200);
+    });
   });
 };
 
+// ========================================get products by category=============================
 const getProductsByCategory = (req, res) => {
   const category = req.params.categories;
   console.log(category);
@@ -84,6 +133,21 @@ const getProductsByCategory = (req, res) => {
   });
 };
 
+// ========================================update status========================================
+const updateStatus = (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const query = "UPDATE products SET status = ? WHERE id = ?";
+  db.query(query, [status, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    return res.json({ message: "Products status updated successfully!" });
+  });
+};
+
+
+
+
 module.exports = {
   getAllProducts,
   getProductsById,
@@ -91,4 +155,5 @@ module.exports = {
   updateProducts,
   deleteProducts,
   getProductsByCategory,
+  updateStatus,
 };

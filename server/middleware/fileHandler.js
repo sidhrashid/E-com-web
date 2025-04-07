@@ -1,15 +1,20 @@
 const multer = require("multer");
 const path = require("path");
 
-const storageConfig = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../../client/public/uploads"));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + file.originalname);
-  },
-});
+const storageConfig = (folderName) =>
+  multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(
+        null,
+        path.join(__dirname, `../../client/public/uploads/${folderName}`)
+      );
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + file.originalname);
+    },
+  });
 
-const upload = multer({ storage: storageConfig });
+const categoryFolder = multer({ storage: storageConfig("categoryImage") });
+const productsFolder = multer({ storage: storageConfig("productImage") });
 
-module.exports = upload;
+module.exports = { categoryFolder, productsFolder };
