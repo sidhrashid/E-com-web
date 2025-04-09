@@ -10,7 +10,8 @@ const products = require("./routes/pagesRoute/ProductsRoute");
 const category = require("./routes/pagesRoute/ProCategoryRoute");
 const adminUser = require("./routes/loginRoute/AdminLoginRoute");
 const cartItem = require("./routes/pagesRoute/CartItemRoutes");
-const paymentRoutes = require("./routes/paymentRoute/Paymentroute");
+const paymentRoutes = require("./routes/paymentMethodRoute/PaymentRoute");
+
 
 const app = express();
 const PORT = process.env.PORT;
