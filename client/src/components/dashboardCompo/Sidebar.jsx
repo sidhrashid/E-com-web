@@ -2,6 +2,7 @@
 import { NavLink } from "react-router-dom";
 import "../../assets/css/dashboardCss/sidebar.css";
 import { useLocation } from "react-router-dom";
+import LogoutButton from "../../pages/admin/auth/LogoutButton";
 
 const Sidebar = ({ isOpen }) => {
   const location = useLocation();
@@ -55,20 +56,13 @@ const Sidebar = ({ isOpen }) => {
               location.pathname === "/admin/dashboard4" ? "active" : ""
             }
           >
-            <NavLink to="/admin/dashboard">
+            <NavLink to="/admin/dashboard">   
               <i className="bx bxs-cog"></i>
               <span className="text">Settings</span>
             </NavLink>
           </li>
-          <li
-            className={
-              location.pathname === "/admin/dashboard5" ? "active" : ""
-            }
-          >
-            <NavLink to="/admin/dashboard" className="logout">
-              <i className="bx bxs-log-out-circle"></i>
-              <span className="text">Logout</span>
-            </NavLink>
+          <li className="flex items-center">
+            <LogoutButton />
           </li>
         </ul>
       </section>

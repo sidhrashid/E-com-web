@@ -50,7 +50,7 @@ const ProductList = () => {
           >
             <img
               onClick={() => navigateProducts(pro.id)}
-              src={`/uploads/${pro.image}`}
+              src={`/uploads/productImage/${pro.image}`}
               alt={pro.name}
               className="w-[150px] h-[150px] object-cover rounded-md"
             />

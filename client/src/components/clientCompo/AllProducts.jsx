@@ -1,14 +1,15 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import SearchbarSmall from "../../pages/client/home/SearchbarSmall";
 import ProductCard from "./ProductCard";
 import axios from "axios";
-import { SearchContext } from "../../context/SearchContext";
+import { useSearchCart } from "../../context/SearchContext";
+
 
 const GET_API = import.meta.env.VITE_GET_API;
 
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
-  const { searchQuery } = useContext(SearchContext); 
+  const { searchQuery } = useSearchCart(); 
 
   useEffect(() => {
     fetchProduct();
@@ -23,7 +24,6 @@ const AllProducts = () => {
     }
   };
 
-  // 🔹 Apply search filter
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) 
   );
@@ -45,6 +45,7 @@ const AllProducts = () => {
                 image={product.image}
                 name={product.name}
                 price={product.price}
+                status={product.status}
               />
             ))
           ) : (

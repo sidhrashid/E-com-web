@@ -18,13 +18,20 @@ const AddAdminUser = () => {
   const handleAddAdminUser = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${addAdminUserAPI}`, addAdminUser);
+      const success = await axios.post(`${addAdminUserAPI}`, addAdminUser);
       setTimeout(() => {
-        toast.success("Admin User added successfully!");
+        if (success.status === 201) {
+          toast.success(success.data.message);
+        }
       }, 200);
       navigate("/admin/alladminusers");
     } catch (error) {
-      console.error("Error adding user:", error);
+      if (error.response.status === 400) {
+        toast.error(error.response.data.message);
+      } else {
+        console.error("Error adding user:", error);
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 

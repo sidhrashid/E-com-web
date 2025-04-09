@@ -1,37 +1,63 @@
 /* eslint-disable react/prop-types */
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom"
+import { useCart } from '../../context/Cart'
 
-const ProductCard = ({ id, image, name, price, onAddToCart }) => {
-  
-  return (
-    <div>
-      <div className="w-[122px] h-[265px] md:w-[160px] rounded-lg p-3 flex flex-col items-center bg-white shadow-lg">
-        <NavLink
-          to={`/productsdetail/${id}`}
-          onClick={() => console.log("Clicked ID:", id)}
-        >
-          <img
-            src={`/uploads/${image}`}
-            alt={name}
-            className="w-[150px] h-[150px] object-contain rounded-md"
-          />
-        </NavLink>
+const ProductCard = ({ id, image, name, price, status }) => {
+    const { cart, addToCart } = useCart()
+    const navigate = useNavigate()
 
-        <h2 className="mt-2 mb-2 font-medium text-center text-sm w-full truncate">
-          {name}
-        </h2>
+    const product = { id, name, price, image }
 
-        <p className="text-gray-600 text-xs">${price}</p>
+    const isInCart = cart.some((item) => item.id === id)
 
-        <button
-          onClick={onAddToCart}
-          className="mt-2 w-full px-3 py-2 bg-black text-white text-xs rounded-md hover:bg-gray-800"
-        >
-          Add To Cart
-        </button>
-      </div>
-    </div>
-  );
-};
+    const isOutOfStock = status === "inactive"
+    return (
+        <>
+            <div
 
-export default ProductCard;
+                className="w-[122px] h-[265px] md:w-[160px] rounded-lg p-3 flex flex-col items-center bg-white shadow-lg"
+            >
+
+                <NavLink to={`/productsdetail/${id}`}>
+                    <img
+                        src={`/uploads/productImage/${image}`}
+                        alt={name}
+                        className="w-[150px] h-[150px] object-cover rounded-md"
+                    />
+
+                </NavLink>
+
+                <h2 className="mt-2 mb-2 font-medium text-center text-sm w-full truncate">
+                    {name}
+                </h2>
+
+                <p className="text-gray-600 text-xs">₹{price}</p>
+
+                {isOutOfStock ? (
+                    <button
+                        className="mt-2 w-full px-3 py-2 bg-gray-400 text-white text-xs rounded-md cursor-not-allowed"
+                        disabled
+                    >
+                        Add To Cart{" "}
+                    </button>
+                ) : isInCart ? (
+                    <button
+                        onClick={() => navigate("/cart")}
+                        className="mt-2 w-full px-3 py-2 bg-green-600 text-white text-xs rounded-md hover:bg-green-700"
+                    >
+                        Go to Cart
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => addToCart(product)}
+                        className="mt-2 w-full px-3 py-2 bg-black text-white text-xs rounded-md hover:bg-gray-800"
+                    >
+                        Add To Cart
+                    </button>
+                )}
+            </div>
+        </>
+    )
+}
+
+export default ProductCard

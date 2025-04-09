@@ -11,30 +11,31 @@ import AdminLogin from "../../pages/admin/auth/AdminLogin";
 import AllAdminUsers from "../../pages/admin/adminUser/AllAdminUsers";
 import AddAdminUser from "../../pages/admin/adminUser/AddAdminUser";
 import UpdateAdminUser from "../../pages/admin/adminUser/UpdateAdminUser";
+
+import ProtectedRoute from "../../pages/admin/auth/ProtectedRoute";
+import ScrollToTop from "../../components/scrollTop";
+
 function DashboardRoute() {
-  return (
+  return (  
     <div>
+      <ScrollToTop />
       <Routes>
         {/* ------------------ Admin ---------------------- */}
         <Route path="/login" element={<AdminLogin />} />
 
-        {/* ------------------ Products ---------------------- */}
-
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/addproduct" element={<AddProducts />} />
-        <Route path="/update/:id" element={<UpdateProducts />} />
-
-        {/* ------------------ category ---------------------- */}
-
-        <Route path="/category" element={<ShowCategory />} />
-        <Route path="/updatecategory/:id" element={<UpdateCategory />} />
-        <Route path="/addcategory" element={<AddCategory />} />
-
-        {/* admin user route */}
-        <Route path="/alladminusers" element={<AllAdminUsers />} />
-        <Route path="/addadmin" element={<AddAdminUser />} />
-        <Route path="/updateadmin" element={<UpdateAdminUser />} />
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/addproduct" element={<AddProducts />} />
+          <Route path="/update/:id" element={<UpdateProducts />} />
+          <Route path="/category" element={<ShowCategory />} />
+          <Route path="/updatecategory/:id" element={<UpdateCategory />} />
+          <Route path="/addcategory" element={<AddCategory />} />
+          <Route path="/alladminusers" element={<AllAdminUsers />} />
+          <Route path="/addadmin" element={<AddAdminUser />} />
+          <Route path="/updateadmin/:id" element={<UpdateAdminUser />} />
+        </Route>
 
         <Route path="*" element={<NotFound />} />
       </Routes>

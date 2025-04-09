@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const GET_API = import.meta.env.VITE_GET_API;
 const DeleteApi = import.meta.env.VITE_DELETE_API;
+const StatusUpdate = import.meta.env.VITE_UPDATE_PRODUCTS_STATUS_API;
 
 const ShowAllProducts = () => {
   const [product, setProduct] = useState([]);
@@ -49,6 +50,21 @@ const ShowAllProducts = () => {
       toast.error("Failed to delete product. Please try again.");
     }
   };
+
+  const toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+  
+    try {
+      await axios.put(`${StatusUpdate}/${id}`, { status: newStatus });
+      toast.success(`Product status updated to ${newStatus}!`);
+  
+      fetchProduct();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status.");
+    }
+  };
+  
 
   return (
     <>
@@ -92,7 +108,7 @@ const ShowAllProducts = () => {
                   <td className="px-4 py-3 text-center">{item.category_id}</td>
                   <td className="px-4 py-3 flex justify-center">
                     <img
-                      src={`/uploads/${item.image}`}
+                      src={`/uploads/productImage/${item.image}`}
                       alt="product"
                       className="w-10 h-10 rounded-full border border-gray-300"
                     />
@@ -106,7 +122,11 @@ const ShowAllProducts = () => {
                   <td className="px-4 py-3 text-center">{item.price}</td>
                   <td className="px-4 py-3 text-center">
                     <label className="relative inline-block w-8 h-4">
-                      <input type="checkbox" className="peer sr-only" />
+                      <input
+                       type="checkbox"
+                       checked={item.status === "active"}
+                       onChange={() => toggleStatus(item.id, item.status)}
+                       className="peer sr-only" />
                       <span className="block w-full h-full bg-gray-300 rounded-full peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:bg-blue-500 transition-colors duration-300"></span>
                       <span className="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow-md transform peer-checked:translate-x-4 transition-transform duration-300"></span>
                     </label>
@@ -139,6 +159,7 @@ const ShowAllProducts = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={confirmDelete}
+        fieldName="product"
       />
 
       <ToastContainer position="top-right" autoClose={2000} />

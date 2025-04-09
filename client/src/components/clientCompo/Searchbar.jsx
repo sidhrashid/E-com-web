@@ -1,10 +1,10 @@
 import { FaSearch } from "react-icons/fa";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SearchContext } from "../../context/SearchContext";
+import { useSearchCart } from "../../context/SearchContext";
 
 function Searchbar() {
-  const { setSearchQuery } = useContext(SearchContext);
+  const { setSearchQuery } = useSearchCart();
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 

@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const GetCategoryApi = import.meta.env.VITE_CATEGORY_API;
 const DeleteCategoryApi = import.meta.env.VITE_DELETE_CATEGORY_API;
+const CategoryStatusUpdate = import.meta.env.VITE_CATEGORY_STATUS_UPDATE_API;
 
 const ShowCategory = () => {
   const [product, setProduct] = useState([]);
@@ -49,6 +50,20 @@ const ShowCategory = () => {
       toast.error("Failed to delete category. Please try again."); 
     }
   };
+  const toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+  
+    try {
+      await axios.put(`${CategoryStatusUpdate}/${id}`, { status: newStatus });
+      toast.success(`Category status updated to ${newStatus}!`);
+      fetchAllData();
+
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status.");
+    }
+  };
+  
 
   return (
     <>
@@ -86,7 +101,7 @@ const ShowCategory = () => {
                     <td className="px-4 py-3 text-center">{item.id}</td>
                     <td className="px-4 py-3 flex justify-center">
                       <img
-                        src={`/uploads/${item.image}`}
+                        src={`/uploads/categoryImage/${item.image}`}
                         alt="product"
                         className="w-[60px] h-[60px]  rounded-full border border-gray-300"
                       />
@@ -94,7 +109,11 @@ const ShowCategory = () => {
                     <td className="px-4 py-3 text-center">{item.title}</td>
                     <td className="px-4 py-3 text-center">
                       <label className="relative inline-block w-10 h-5">
-                        <input type="checkbox" className="peer sr-only" />
+                        <input
+                         type="checkbox" 
+                        //  checked={item.status === "active"}
+                         onChange={() => toggleStatus(item.id, item.status)}
+                         className="peer sr-only" />
                         <span className="block w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"></span>
                         <span className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-md transform peer-checked:translate-x-5 transition-transform duration-300"></span>
                       </label>
@@ -124,6 +143,7 @@ const ShowCategory = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={confirmDelete}
+        fieldName={"category"}
       />
       <ToastContainer position="top-right" autoClose={2000} />
     </>

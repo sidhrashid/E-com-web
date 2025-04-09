@@ -1,123 +1,117 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useCart } from "../../context/Cart";
 
-const GetProByIdAPI = import.meta.env.VITE_GET_BY_ID_API;
+const BASE_URL = "http://localhost:3000"; // API base URL
 
 const ProductsDetail = () => {
-  const [products, setProducts] = useState(null);
-  const [showFullDescription, setShowFullDescription] = useState(false);
-  const { id } = useParams();
+    const [product, setProduct] = useState(null);
+    const { id } = useParams();
+    const { addToCart, cart } = useCart();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    if (id) {
-      fetchProducts();
+    const isInCart = cart.some((item) => item.id === Number(id));
+    const isOutOfStock = product?.status === "inactive";
+
+    useEffect(() => {
+        if (id) {
+            fetchProduct();
+        }
+    }, [id]);
+
+    const fetchProduct = async () => {
+        try {
+            const res = await axios.get(`${BASE_URL}/getproductsbyid/${id}`);
+            setProduct(res.data[0] || null);
+        } catch (error) {
+            console.error("Error fetching product:", error);
+        }
+    };
+
+    if (!product) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                Loading...
+            </div>
+        );
     }
-  }, [id]);
 
-  const fetchProducts = async () => {
-    try {
-      const res = await axios.get(`${GetProByIdAPI}${id}`);
-      setProducts(res.data[0] || null);
-    } catch (error) {
-      console.error("Error fetching product:", error);
-    }
-  };
-
-  // Utility function to remove <p> tags
-  const removePTags = (html) => {
-    return html.replace(/<p>/g, "").replace(/<\/p>/g, "");
-  };
-
-  const getDescriptionWithReadMore = () => {
-    const description = removePTags(products.description); // <p> tag remove karo
-
-    if (description.includes("braided cab")) {
-      const parts = description.split("braided cab");
-      return (
-        <>
-          {parts[0]}braided cab
-          {!showFullDescription && (
-            <>
-              ...
-              <span
-                onClick={() => setShowFullDescription(true)}
-                className="text-blue-500 ml-1 cursor-pointer hover:underline"
-              >
-                Read More
-              </span>
-            </>
-          )}
-          {showFullDescription && parts.slice(1).join("braided cab")}
-        </>
-      );
-    } else {
-      return (
-        <>
-          {!showFullDescription ? (
-            description.substring(0, 150) + "..."
-          ) : (
-            description
-          )}
-          {!showFullDescription && (
-            <span
-              onClick={() => setShowFullDescription(true)}
-              className="text-blue-500 ml-1 cursor-pointer hover:underline"
-            >
-              Read More
-            </span>
-          )}
-        </>
-      );
-    }
-  };
-
-  if (!products) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+            <div className="max-w-6xl w-full bg-white rounded-xl shadow-lg flex flex-col md:flex-row overflow-hidden">
+                {/* Product Image */}
+                <div className=" md:w-1/2 bg-gray-200 flex items-center justify-center p-6">
+                    <img
+                        src={`/uploads/productImage/${product.image}`}
+                        alt={product.name}
+                        className="sm:object-contain sm:h-96 rounded-lg"
+                    />
+                </div>
+
+                {/* Product Details */}
+                <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
+                        <p className="text-sm text-gray-500 mt-1 uppercase">by James Anderson</p>
+
+                        {/* Pricing Section */}
+                        <div className="mt-4">
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-400 line-through text-xl">₹{Number(product.price) + 100}</span>
+                                <span className="text-green-600 font-bold text-2xl">₹{product.price}</span>
+                            </div>
+                            <div className="mt-4">
+                                {isOutOfStock ? (
+                                    <p className="text-sm text-red-600 font-semibold">🔴 Out of Stock</p>
+                                ) : (
+                                    <p className="text-sm text-green-600 font-semibold">🟢 In Stock</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="mt-4">
+                            <h3 className="font-semibold text-gray-800 mb-1">Description : </h3>
+                            <p
+                                className="text-gray-600 text-sm"
+                                dangerouslySetInnerHTML={{ __html: product.description }}
+                            ></p>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 border-t pt-4">
+
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            {isOutOfStock ? (
+                                <button className="bg-gray-400 text-white px-5 py-2 rounded-md w-full cursor-not-allowed">
+                                    Out of Stock
+                                </button>
+                            ) : isInCart ? (
+                                <button
+                                    onClick={() => navigate("/cart")}
+                                    className="bg-green-600 text-white px-5 py-2 rounded-md w-full"
+                                >
+                                    Go to Cart
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => addToCart(product)}
+                                    className="border border-gray-400 text-gray-600 px-5 py-2 rounded-md w-full"
+                                >
+                                    Add to Cart
+                                </button>
+                            )}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
-  }
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="max-w-5xl bg-white p-6 rounded-lg shadow-md flex flex-col md:flex-row gap-6">
-        <div className="flex-1 flex justify-center">
-          <img
-            src={`/uploads/${products.image}`}
-            alt={products.name}
-            className="w-full max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg h-auto rounded-lg shadow-md"
-          />
-        </div>
-
-        <div className="flex-1 flex flex-col justify-center p-4">
-          <h2 className="text-2xl md:text-3xl font-bold">{products.name}</h2>
-
-          <div className="text-gray-600 mt-2">
-            {getDescriptionWithReadMore()}
-          </div>
-
-          {showFullDescription && (
-            <button
-              onClick={() => setShowFullDescription(false)}
-              className="text-blue-500 mt-2 hover:underline"
-            >
-              Read Less
-            </button>
-          )}
-
-          <p className="text-xl md:text-2xl font-semibold mt-4">
-            ${products.price}
-          </p>
-
-          <button className="mt-6 bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 transition-all duration-200">
-            Add to Cart
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default ProductsDetail;

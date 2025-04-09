@@ -8,6 +8,8 @@ import DeleteModal from "../../../components/Modal/DeleteModal";
 
 const getAdminUserAPI = import.meta.env.VITE_GET_ADMIN_USER_API;
 const adminDeleteAPI = import.meta.env.VITE_DELETE_ADMIN_USER_API;
+const adminStatusAPI = import.meta.env.VITE_UPDATE_ADMIN_STATUS_API;
+
 
 const AllAdminUsers = () => {
   const [adminUsersData, setAdminUsersData] = useState([]);
@@ -42,6 +44,24 @@ const AllAdminUsers = () => {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user. Please try again.");
+    }
+  };
+
+  const toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+    try {
+      await axios.put(`${adminStatusAPI}/${id}`,{ status: newStatus });
+
+      setAdminUsersData((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === id ? { ...user, status: newStatus } : user
+        )
+      );
+      toast.success(`User status updated to ${newStatus}!`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status.");
     }
   };
 
@@ -95,22 +115,18 @@ const AllAdminUsers = () => {
                         <input
                           type="checkbox"
                           className="peer sr-only"
-                          // Aap status update ka functionality baad me add kar sakte hain.
-                          // checked={user.status}  
-                          // onChange={(e) => handleStatusToggle(user.id, e.target.checked)}
+                          checked={user.status === "active"}
+                          onChange={() => toggleStatus(user.id, user.status)}
                         />
                         <span className="block w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"></span>
                         <span className="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow-md transform peer-checked:translate-x-4 transition-transform duration-300"></span>
                       </label>
                     </td>
+
+                   
                     <td className="text-center space-x-1">
-                      <NavLink to={`/admin/updatecategory/${user.id}`}>
-                        <button
-                          onClick={() =>
-                            toast.info("Navigating to update page", { autoClose: 1500 })
-                          }
-                          className="px-2 py-1 border text-blue-600 rounded-md hover:bg-gray-100 transition duration-300"
-                        >
+                      <NavLink to={`/admin/updateadmin/${user.id}`}>
+                        <button className="px-2 py-1 border text-blue-600 rounded-md hover:bg-gray-100 transition duration-300">
                           <i className="fa-solid fa-pencil text-sm"></i>
                         </button>
                       </NavLink>
@@ -132,6 +148,7 @@ const AllAdminUsers = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={confirmDelete}
+        fieldName="admin"
       />
 
       <ToastContainer position="top-right" autoClose={2000} />

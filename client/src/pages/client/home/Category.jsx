@@ -71,7 +71,7 @@ const Category = () => {
               className="min-w-[165px] bg-white rounded-lg p-4 text-center shadow-md hover:shadow-lg transition"
             >
               <img
-                src={`/uploads/${category.image}`}
+                src={`/uploads/categoryImage/${category.image}`}
                 alt={category.name}
                 className="w-full h-36 object-cover rounded-md"
               />

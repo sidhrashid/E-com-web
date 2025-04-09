@@ -2,19 +2,19 @@ import { useState } from "react";
 import { FaUser, FaShoppingCart } from "react-icons/fa";
 import { MdCancel } from "react-icons/md";
 import { NavLink } from "react-router-dom";
+import { useCart } from "../../context/Cart";
 
 function NavIcon() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const userToken = localStorage.getItem("token");
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const userInfo = JSON.parse(localStorage.getItem("user_Id"));
+  const { totalItems } = useCart()
 
   const handleProfile = () => {
     setIsProfileOpen((prev) => !prev);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
+    localStorage.removeItem("user_Id");
     setIsProfileOpen(false);
     window.location.reload();
   };
@@ -22,12 +22,12 @@ function NavIcon() {
   return (
     <div className="flex items-center gap-4 xl:6 relative">
       {/* User Profile Icon */}
-      {userToken ? (
+      {userInfo ? (
         <img
           src={
             userInfo?.picture ||
-            userInfo?.picture_url ||
-            "https://i.pravatar.cc/100"
+            userInfo?.picture_url   //||//
+            // "https://i.pravatar.cc/100"
           }
           alt="Profile"
           className="w-8 h-8 rounded-full cursor-pointer"
@@ -49,15 +49,15 @@ function NavIcon() {
           </div>
 
           {/* Profile Content */}
-          {userToken ? (
+          {userInfo ? (
             <>
               {/* Profile Image */}
               <div className="flex justify-center mt-4">
                 <img
                   src={
                     userInfo?.picture ||
-                    userInfo?.picture_url ||
-                    "https://i.pravatar.cc/100"
+                    userInfo?.picture_url  // || //
+                    // "https://i.pravatar.cc/1000"
                   }
                   alt="Profile"
                   className="w-20 h-20 rounded-full border-2 border-gray-300"
@@ -68,7 +68,7 @@ function NavIcon() {
                   {userInfo?.username}
                 </p>
                 <p className="text-gray-500 w-full break-words">
-                  {userInfo?.email}
+                  {userInfo?.email_or_phone}
                 </p>
 
                 {/* Logout Button */}
@@ -109,9 +109,12 @@ function NavIcon() {
       <div className="relative cursor-pointer">
         <NavLink to="/cart">
           <FaShoppingCart />
-          <div className="absolute -top-[11px] -right-[10px] w-4 h-4 p-[10px] bg-SR rounded-full text-white text-[10px] text-center flex items-center justify-center">
-            10
+
+          {totalItems > 0 && (<div className="absolute -top-[11px] -right-[10px] w-4 h-4 p-[10px] bg-SR rounded-full text-white text-[10px] text-center flex items-center justify-center">
+            {totalItems}
           </div>
+
+          )}
         </NavLink>
       </div>
     </div>

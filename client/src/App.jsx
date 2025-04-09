@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomeRoutes from "./routes/HomeRoutes/HomeRoutes";
 import DashboardRoute from "./routes/DashboardRoutes/DashboardRoutes";
 
-
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function App() {
