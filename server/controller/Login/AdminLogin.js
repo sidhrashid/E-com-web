@@ -1,5 +1,5 @@
 const db = require("../../connection/Connection");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 // ===================================== (bcrypt.hash) =====================================
 
