@@ -3,7 +3,7 @@ import Home from "../../pages/client/home";
 import Layout from "../../components/clientCompo/Layout";
 import NotFound from "../../pages/error/NotFound";
 import Cart from "../../components/clientCompo/Cart";
-import Login from "../../pages/client/login";
+import Login from "../../pages/client/Login";
 import SignUp from "../../pages/client/Signup";
 import CheckOutPage from "../../components/clientCompo/CheckOutPage";
 import OrderTracking from "../../components/clientCompo/OrderTracking";
