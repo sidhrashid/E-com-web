@@ -3,14 +3,17 @@ import Home from "../../pages/client/home";
 import Layout from "../../components/clientCompo/Layout";
 import NotFound from "../../pages/error/NotFound";
 import Cart from "../../components/clientCompo/Cart";
-import Login from "../../pages/client/Login";
-import SignUp from "../../pages/client/Signup";
+import Login from "../../pages/client/LoginPage/Login";
+import Signup from "../../pages/client/SignupPage/Signup";
 import CheckOutPage from "../../components/clientCompo/CheckOutPage";
 import OrderTracking from "../../components/clientCompo/OrderTracking";
 import CategoryProducts from "../../components/clientCompo/AllCategoryProducts";
 import ProductDetail from "../../components/clientCompo/ProductsDetail";
 import AllProducts from "../../components/clientCompo/AllProducts";
 import ScrollToTop from "../../components/scrollTop";
+
+
+
 function HomeRoutes() {
   return (
     <div>
@@ -18,7 +21,7 @@ function HomeRoutes() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route
             path="/categoryproducts/:category_id"
