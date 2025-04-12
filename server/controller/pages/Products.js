@@ -17,7 +17,7 @@ const getAllProducts = (req, res) => {
 // ========================================get products by id===================================
 const getProductsById = (req, res) => {
   const id = req.params.id;
-  const q = "SELECT * FROM products WHERE id =?";
+  const q = "SELECT * FROM products WHERE id =$1";
   db.query(q, [id], (err, result) => {
     if (err) {
       return res.status(500);
@@ -32,7 +32,7 @@ const addProducts = (req, res) => {
   const image = req.file ? req.file.filename : null;
 
   const q =
-    "INSERT INTO products (name, price, description, image, category_id, status) VALUES (?,?,?,?,? ,?)";
+    "INSERT INTO products (name, price, description, image, category_id, status) VALUES ($1, $2, $3, $4, $5, $6)";
 
   const values = [name, price, description, image, category_id ,"active"];
 
@@ -56,7 +56,7 @@ const updateProducts = (req, res) => {
   const { name, price, description, category_id } = req.body;
   const newImage = req.file ? req.file.filename : null;
 
-  const selectQuery = "SELECT image FROM products WHERE id = ?";
+  const selectQuery = "SELECT image FROM products WHERE id = $1";
   db.query(selectQuery, [id], (err, data) => {
     if (err) return res.status(500).json({ message: "Database Error" });
 
@@ -91,7 +91,7 @@ const updateProducts = (req, res) => {
 
 const deleteProducts = (req, res) => {
   const id = req.params.id;
-  const selectImage = "SELECT image FROM products WHERE id = ?";
+  const selectImage = "SELECT image FROM products WHERE id = $1";
   db.query(selectImage, [id], (err, data) => {
     if (err) return res.status(500).json({ message: "Database Error" });
 
@@ -122,7 +122,7 @@ const deleteProducts = (req, res) => {
 const getProductsByCategory = (req, res) => {
   const category = req.params.categories;
   console.log(category);
-  const q = "SELECT * FROM products WHERE category_id = ?";
+  const q = "SELECT * FROM products WHERE category_id = $1";
   db.query(q, category, (err, result) => {
     if (err) {
       console.log(err);
@@ -138,7 +138,7 @@ const updateStatus = (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const query = "UPDATE products SET status = ? WHERE id = ?";
+  const query = "UPDATE products SET status = $1 WHERE id = $2";
   db.query(query, [status, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
     return res.json({ message: "Products status updated successfully!" });

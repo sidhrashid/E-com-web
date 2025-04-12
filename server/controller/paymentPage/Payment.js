@@ -67,7 +67,7 @@ const paymentVerification = async (req, res) => {
 
       const [result] = await db.query(
         `INSERT INTO payments (order_id, user_id, payment_method, payment_status, transaction_id, amount, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
           paymentData.order_id,
           paymentData.user_id,

@@ -19,7 +19,7 @@ const getCategories = (req, res) => {
 const addCategory = (req, res) => {
   const title = req.body.title;
   const image = req.file ? req.file.filename : null;
-  const q = "INSERT INTO categories (title, image ,status) VALUES (?,?,?)";
+  const q = "INSERT INTO categories (title, image ,status) VALUES ($1, $2, $3)";
   const values = [title, image, "active"];
   db.query(q, values, (err, result) => {
     if (err) {
@@ -38,7 +38,7 @@ const updateCategory = (req, res) => {
   const { title } = req.body;
   const newImage = req.file ? req.file.filename : null;
 
-  const selectQuery = "SELECT image FROM categories WHERE id = ?";
+  const selectQuery = "SELECT image FROM categories WHERE id = $1";
   db.query(selectQuery, [id], (err, data) => {
     if (err) return res.status(500).json({ message: "Database Error" });
 
@@ -73,7 +73,7 @@ const updateCategory = (req, res) => {
 
 const getCategoryById = (req, res) => {
   const id = req.params.id;
-  const q = "SELECT * FROM categories WHERE id =?";
+  const q = "SELECT * FROM categories WHERE id =$1";
   db.query(q, id, (err, result) => {
     if (err) {
       return res.status(500);
@@ -88,7 +88,7 @@ const deleteCategory = (req, res) => {
   const id = req.params.id;
 
   const selectProductImages =
-    "SELECT image FROM products WHERE category_id = ?";
+    "SELECT image FROM products WHERE category_id = $1";
   db.query(selectProductImages, [id], (err, productData) => {
     if (err)
       return res.status(500).json({ message: "Error fetching product images" });
@@ -142,7 +142,7 @@ const updateStatus = (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const query = "UPDATE categories SET status = ? WHERE id = ?";
+  const query = "UPDATE categories SET status = $1 WHERE id = $2";
   db.query(query, [status, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
     return res.json({ message: "Category status updated successfully!" });
