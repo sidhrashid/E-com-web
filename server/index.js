@@ -5,6 +5,15 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+app.use(
+  cors({
+    origin: "https://e-com-web-1-srky.onrender.com", // Frontend ka URL yaha daalein
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allowed methods
+    credentials: true, // Agar aap cookies pass karna chahte hain
+    allowedHeaders: "Content-Type, Authorization", // Allowed headers
+  })
+);
+
 const userlogin = require("./routes/loginRoute/UserLoginRoute");
 const products = require("./routes/pagesRoute/ProductsRoute");
 const category = require("./routes/pagesRoute/ProCategoryRoute");
@@ -16,14 +25,7 @@ const app = express();
 const PORT = process.env.PORT;
 const URL = process.env.URL;
 
-app.use(
-  cors({
-    origin: "https://e-com-web-1-srky.onrender.com", // Frontend ka URL yaha daalein
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allowed methods
-    credentials: true, // Agar aap cookies pass karna chahte hain
-    allowedHeaders: "Content-Type, Authorization", // Allowed headers
-  })
-);
+
 
 app.use(express.json());
 app.use(bodyparser.json());

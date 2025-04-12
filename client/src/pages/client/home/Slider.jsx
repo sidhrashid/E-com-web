@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import SearchbarSmall from "./SearchbarSmall";
-import CategoryList from "./Category";
-import ProductList from "./ProductsList";
-import Banner from "./Banner";
-import WhyUs from "./WhyUS";
+// import SearchbarSmall from "./SearchbarSmall";
+
 
 const slides = [
   {
@@ -46,7 +43,7 @@ const Slider = () => {
 
   return (
     <>
-      <SearchbarSmall />
+      {/* <SearchbarSmall /> */}
       <div className="h-[calc(100vh-80px)] max-h-[800px] overflow-hidden relative">
         {/* Slider Container */}
         <div
@@ -98,10 +95,7 @@ const Slider = () => {
           ))}
         </div>
       </div>
-      <CategoryList />
-      <ProductList />
-      <Banner />
-      <WhyUs />
+    
     </>
   );
 };
