@@ -17,7 +17,6 @@ const app = express();
 const PORT = process.env.PORT;
 const URL = process.env.URL;
 
-app.use(cors());
 app.use(express.json());
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: true }));
@@ -31,11 +30,13 @@ app.use('/', paymentRoutes);
 
 app.use(
   cors({
-    origin: "*", // Ya specific frontend URL like "http://localhost:3000"
+    origin: "https://e-com-web-1-srky.onrender.com",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
     allowedHeaders: "Content-Type, Authorization",
   })
 );
+
 
 app.listen(PORT, () => {
   console.log(`server is running on port ${URL}`);
