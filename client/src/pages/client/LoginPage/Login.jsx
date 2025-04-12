@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import req from "../../../assets/images/shopping.jpg";
+import req from "../../../assets/images/Shopping.jpg";
 import axios from "axios";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";

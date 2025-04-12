@@ -1,4 +1,4 @@
-import cart from "../../../assets/images/shopping.jpg";
+import cart from "../../../assets/images/Shopping.jpg";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
