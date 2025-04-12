@@ -3,7 +3,7 @@ import NotFound from "../../pages/error/NotFound";
 import Products from "../../pages/admin/products/ShowAllProducts";
 import Dashboard from "../../pages/admin/dashboard/Dashboard";
 import AddProducts from "../../pages/admin/products/AddProducts";
-import UpdateProducts from "../../pages/admin/products/Updateproducts";
+import UpdateProducts from "../../pages/admin/products/UpdateProducts";
 import ShowCategory from "../../pages/admin/categories/ShowCategory";
 import AddCategory from "../../pages/admin/categories/AddCategory";
 import UpdateCategory from "../../pages/admin/categories/UpdateCategory";
