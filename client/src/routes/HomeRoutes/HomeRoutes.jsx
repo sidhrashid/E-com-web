@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import Home from "../../pages/client/home";
+import Home from "../../pages/client/home/Slider";
 import Layout from "../../components/clientCompo/Layout";
 import NotFound from "../../pages/error/NotFound";
 import Cart from "../../components/clientCompo/Cart";
