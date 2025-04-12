@@ -1,0 +1,14 @@
+{
+    "name": "ecommerce-fullstack",
+    "version": "1.0.0",
+    "scripts": {
+        "install": "cd server && npm install && cd ../client && npm install",
+        "build": "cd client && npm run build",
+        "start": "cd server && node index.js"
+    },
+    "main": "index.js",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "E-commerce website built using React, Node.js, Express, MySQL and Razorpay."
+}
