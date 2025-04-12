@@ -13,39 +13,44 @@ export const CartProvider = ({ children }) => {
     });
 
     const user = localStorage.getItem("user_Id");
-    console.log( "user", user);
-    const BASE_URL = "http://localhost:3000";
+    const BASE_URL = "http://https://e-com-web-n1aw.onrender.com:3000";
 
-    const hasSyncedCart = useRef(false); // ✅ Prevent multiple syncs
+    const hasSyncedCart = useRef(false); // Prevent multiple syncs
+    const isSyncing = useRef(false); // Prevent sync requests while syncing
 
     // Load cart based on login status
     useEffect(() => {
         const loadCart = async () => {
-            if (user && !hasSyncedCart.current) {
-                hasSyncedCart.current = true;
+            if (user && !hasSyncedCart.current && !isSyncing.current) {
+                isSyncing.current = true; // Set syncing flag
 
                 const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-
                 if (localCart.length > 0) {
                     try {
                         await axios.post(`${BASE_URL}/sync-cart-item`, {
                             user_id: user,
                             cartItems: localCart,
                         });
-                        localStorage.removeItem("cart"); // ✅ Remove local cart
-                        setCart([]); // ✅ Clear React cart state
+                        localStorage.removeItem("cart"); // Remove local cart after sync
+                        setCart([]); // Clear React cart state
                     } catch (error) {
                         console.error("Error syncing cart:", error);
+                        // Consider adding a notification for the user
                     }
                 }
 
                 try {
                     const { data } = await axios.get(`${BASE_URL}/get-cart-item/${user}`);
                     setCart(data);
+                    hasSyncedCart.current = true; // Mark as synced
                 } catch (error) {
                     console.error("Error fetching cart:", error);
+                    // Consider showing a user-friendly error message
+                } finally {
+                    isSyncing.current = false; // Reset syncing flag
                 }
-            } else {
+            } else if (!user) {
+                // For non-logged-in users, load local cart
                 const savedCart = localStorage.getItem("cart");
                 setCart(savedCart ? JSON.parse(savedCart) : []);
             }

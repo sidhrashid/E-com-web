@@ -111,7 +111,7 @@ const ShowCategory = () => {
                       <label className="relative inline-block w-10 h-5">
                         <input
                          type="checkbox" 
-                        //  checked={item.status === "active"}
+                         checked={item.status === "active"}
                          onChange={() => toggleStatus(item.id, item.status)}
                          className="peer sr-only" />
                         <span className="block w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"></span>

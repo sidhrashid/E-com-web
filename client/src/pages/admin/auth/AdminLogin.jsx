@@ -11,7 +11,6 @@ const AdminLogin = () => {
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -31,12 +30,11 @@ const AdminLogin = () => {
       return;
     }
 
-    setLoading(true);
     try {
       const response = await axios.post(AdminLoginApi, formData);
       console.log("Login successful:", response.data);
-      
-      localStorage.setItem('isAdminLoggedIn', 'true');
+
+      localStorage.setItem("isAdminLoggedIn", "true");
 
       navigate("/admin/dashboard");
     } catch (error) {
@@ -88,12 +86,9 @@ const AdminLogin = () => {
 
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            {loading ? "Logging in..." : "Login"}
+            Login
           </button>
         </form>
       </div>

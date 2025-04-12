@@ -48,7 +48,7 @@ function AddProducts() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(products);
+
     const formData = new FormData();
     formData.append("name", products.name);
     formData.append("price", products.price);
@@ -63,9 +63,7 @@ function AddProducts() {
         },
       });
 
-      setTimeout(() => {
-        toast.success("Product added successfully!");
-      }, 1000);
+      toast.success("Product added successfully!");
       navigate("/admin/products");
     } catch (error) {
       if (error.response) {
@@ -122,7 +120,6 @@ function AddProducts() {
                   <label className="block text-sm font-medium text-gray-700">
                     Category
                   </label>
-
                   <select
                     name="category_id"
                     value={products.category_id}
@@ -138,6 +135,7 @@ function AddProducts() {
                     ))}
                   </select>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Image
@@ -149,6 +147,14 @@ function AddProducts() {
                     required
                     className="w-full mt-1 p-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:ring-blue-500 focus:border-blue-500"
                   />
+                  {/* Optional Image Preview */}
+                  {products.image && (
+                    <img
+                      src={URL.createObjectURL(products.image)}
+                      alt="Preview"
+                      className="w-32 h-32 mt-2 rounded border"
+                    />
+                  )}
                 </div>
               </div>
 

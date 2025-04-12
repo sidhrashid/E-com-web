@@ -4,7 +4,6 @@ import ProductCard from "./ProductCard";
 import axios from "axios";
 import { useSearchCart } from "../../context/SearchContext";
 
-
 const GET_API = import.meta.env.VITE_GET_API;
 
 const AllProducts = () => {
@@ -18,14 +17,24 @@ const AllProducts = () => {
   const fetchProduct = async () => {
     try {
       const res = await axios.get(`${GET_API}`);
-      setProducts(res.data);
+      const data = res.data;
+
+      if (Array.isArray(data)) {
+        setProducts(data);
+      } else if (Array.isArray(data.data)) {
+        setProducts(data.data);
+      } else {
+        console.error("Unexpected product format:", data);
+        setProducts([]);
+      }
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching all products:", error);
+      setProducts([]);
     }
   };
 
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) 
+    product.name?.toLowerCase().includes(searchQuery?.toLowerCase() || "")
   );
 
   return (
