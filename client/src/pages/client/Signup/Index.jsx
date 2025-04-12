@@ -1,11 +1,10 @@
-import React from 'react'
-import SignUp from './SignUp'
+import Signup from './Signup'
 
 const Index = () => {
   return (
     <>
 
-    <SignUp />
+    <Signup />
     </>
   )
 }
