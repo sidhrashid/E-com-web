@@ -13,7 +13,7 @@ const addAdminUser = async (req, res) => {
                 .json({ message: "Username, email, and password are required." });
         }
 
-        const checkEmail = "SELECT * FROM `admin_users` WHERE username = $1 OR email = $2"
+        const checkEmail = "SELECT * FROM admin_users WHERE username = $1 OR email = $2"
         db.query(checkEmail, [username, email], async (err, result) => {
             if (err) {
                 console.error("Database error:", err.message);
@@ -26,7 +26,7 @@ const addAdminUser = async (req, res) => {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const sqlQuery = "INSERT INTO `admin_users` (username, status, email, password) VALUES ($1, $2, $3, $4)";
+            const sqlQuery = "INSERT INTO  admin_users (username, status, email, password) VALUES ($1, $2, $3, $4)";
             const data = [username, "active", email, hashedPassword];
 
             db.query(sqlQuery, data, (err) => {
@@ -55,7 +55,7 @@ const loginAdminUser = async (req, res) => {
             return res.status(400).json({ message: "Email and password are required." });
         }
 
-        const sql = "SELECT * FROM `admin_users` WHERE email = $1";
+        const sql = "SELECT * FROM admin_users WHERE email = $1";
 
         db.query(sql, [email], async (err, results) => {
             if (err) {
