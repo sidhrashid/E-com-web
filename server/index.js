@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const app = express(); // ✅ Yeh line sabse pehle aani chahiye
+
 app.use(
   cors({
     origin: "https://e-com-web-1-srky.onrender.com", // Frontend ka URL yaha daalein
@@ -14,6 +16,7 @@ app.use(
   })
 );
 
+// Routes
 const userlogin = require("./routes/loginRoute/UserLoginRoute");
 const products = require("./routes/pagesRoute/ProductsRoute");
 const category = require("./routes/pagesRoute/ProCategoryRoute");
@@ -21,11 +24,8 @@ const adminUser = require("./routes/loginRoute/AdminLoginRoute");
 const cartItem = require("./routes/pagesRoute/CartItemRoutes");
 const paymentRoutes = require("./routes/paymentMethodRoute/PaymentRoute");
 
-const app = express();
 const PORT = process.env.PORT;
 const URL = process.env.URL;
-
-
 
 app.use(express.json());
 app.use(bodyparser.json());
