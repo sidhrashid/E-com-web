@@ -17,6 +17,5 @@ router.put(
   categoryFolder.single("image"),
   Category.updateCategory
 );
-router.put("/updatestatus/:id", Category.updateStatus);
 
 module.exports = router;
