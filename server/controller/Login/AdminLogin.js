@@ -154,7 +154,7 @@ const getAdminUsersById = (req, res) => {
 
 
 
-const updateAdminStatus = (req, res) => {
+const updateStatus = (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
   
