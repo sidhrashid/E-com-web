@@ -23,21 +23,23 @@ function UpdateProducts() {
   const [data, setData] = useState([]);
   const navigate = useNavigate();
   const { id } = useParams();
+  console.log(id);
 
   useEffect(() => {
-    const fetchProductById = async () => {
+    const fetchAllProducts = async () => {
       try {
         const res = await axios.get(`${GetProById}${id}`);
+        console.log(res.data[0]);
         setProducts(res.data[0]);
       } catch (error) {
-        console.log("Error fetching product:", error);
+        console.log("Error fetching products:", error);
       }
     };
-    fetchProductById();
+    fetchAllProducts();
   }, [id]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchAllData = async () => {
       try {
         const res = await axios.get(CategoryApi);
         setData(res.data);
@@ -45,7 +47,7 @@ function UpdateProducts() {
         console.log("Error fetching categories:", error);
       }
     };
-    fetchCategories();
+    fetchAllData();
   }, []);
 
   const handleChange = (e) => {
@@ -70,17 +72,7 @@ function UpdateProducts() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !products.name ||
-      !products.price ||
-      !products.category_id ||
-      !products.description
-    ) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-
+    console.log(products);
     const formData = new FormData();
     formData.append("name", products.name);
     formData.append("price", products.price);
@@ -94,8 +86,8 @@ function UpdateProducts() {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Server Response:", response.data);
 
+      console.log("Server Response:", response.data);
       toast.success("Product updated successfully!");
       setTimeout(() => {
         navigate("/admin/products");
@@ -110,11 +102,6 @@ function UpdateProducts() {
     }
   };
 
-  const imagePreview =
-    typeof products.image === "string"
-      ? `/uploads/productImage/${products.image}`
-      : products.image && URL.createObjectURL(products.image);
-
   return (
     <>
       <Hoc />
@@ -124,9 +111,7 @@ function UpdateProducts() {
             <h3 className="text-2xl font-semibold text-gray-800 mb-6">
               Update Product
             </h3>
-
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name & Price */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -139,10 +124,8 @@ function UpdateProducts() {
                     onChange={handleChange}
                     placeholder="Enter Product Name"
                     className="w-full mt-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    required
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Price
@@ -152,22 +135,19 @@ function UpdateProducts() {
                     name="price"
                     value={products.price}
                     onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    onWheel={(e) => e.target.blur()}
                     placeholder="Enter Price"
+                    onWheel={(e) => e.target.blur()}
                     className="w-full mt-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    required
                   />
                 </div>
               </div>
 
-              {/* Category & Image */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Category
                   </label>
+
                   <select
                     name="category_id"
                     value={products.category_id}
@@ -183,21 +163,10 @@ function UpdateProducts() {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Image
                   </label>
-                  {imagePreview && (
-                    <div className="mb-2">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-20 h-20 object-cover rounded-md border"
-                      />
-                      <p className="text-xs text-gray-500">Image Preview</p>
-                    </div>
-                  )}
                   <input
                     type="file"
                     name="image"
@@ -207,7 +176,6 @@ function UpdateProducts() {
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Description
@@ -219,7 +187,6 @@ function UpdateProducts() {
                 />
               </div>
 
-              {/* Buttons */}
               <div className="flex sm:justify-end justify-center space-x-3">
                 <NavLink to="/admin/products">
                   <button

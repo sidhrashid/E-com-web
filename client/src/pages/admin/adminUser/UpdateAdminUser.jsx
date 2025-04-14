@@ -26,7 +26,6 @@ const UpdateAdminUser = () => {
       toast.error("Failed to fetch admin user details");
     }
   };
-  
   useEffect(() => {
     fetchAdminUser();
   }, [id]);
@@ -63,7 +62,7 @@ const UpdateAdminUser = () => {
     <>
       <Hoc />
       <section id="content">
-        <main className="flex-1 flex justify-center items-center bg-gray-100 h-screen">
+        <main className="flex-1 flex justify-center items-center bg-gray-100 h-screen ">
           <form
             onSubmit={handleSubmit}
             className="w-full max-w-md bg-white p-6 shadow-lg rounded-lg flex flex-col space-y-4"

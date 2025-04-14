@@ -13,12 +13,10 @@ const AddAdminUser = () => {
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
   const handleAddAdminUser = async (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true when API request starts
     try {
       const success = await axios.post(`${addAdminUserAPI}`, addAdminUser);
       setTimeout(() => {
@@ -34,19 +32,17 @@ const AddAdminUser = () => {
         console.error("Error adding user:", error);
         toast.error("Something went wrong. Please try again.");
       }
-    } finally {
-      setLoading(false); // Set loading to false after the request finishes
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setAddAdminUser((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
-
   return (
     <>
       <Hoc />
@@ -102,9 +98,8 @@ const AddAdminUser = () => {
             <button
               type="submit"
               className="bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
-              disabled={loading} // Disable button while loading
             >
-              {loading ? "Adding..." : "Add Admin"}
+              Add Admin
             </button>
           </form>
         </main>

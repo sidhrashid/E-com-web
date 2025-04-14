@@ -14,20 +14,13 @@ const AllCategoryProducts = () => {
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
-        const res = await axios.get(`${getProductsByCategoryAPI}${category_id}`);
+        const res = await axios.get(
+          `${getProductsByCategoryAPI}${category_id}`
+        );
         console.log(res.data);
-
-        if (Array.isArray(res.data)) {
-          setCategories(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setCategories(res.data.data);
-        } else {
-          console.error("Unexpected response format:", res.data);
-          setCategories([]);
-        }
+        setCategories(res.data);
       } catch (error) {
         console.log("Error fetching products:", error);
-        setCategories([]);
       }
     };
     fetchAllProducts();
@@ -35,8 +28,9 @@ const AllCategoryProducts = () => {
 
   return (
     <>
+      {" "}
       <SearchbarSmall />
-      <div className="flex flex-col md:flex-row lg:mb-4">
+      <div className=" flex flex-col md:flex-row lg:mb-4">
         {/* Sidebar */}
         <CategoryMenu />
 
@@ -44,20 +38,16 @@ const AllCategoryProducts = () => {
         <div className="w-full md:w-4/5 p-4">
           {/* Product Grid */}
           <div className="w-h-screen flex flex-wrap justify-center gap-x-3 gap-y-7">
-            {categories.length === 0 ? (
-              <p>No products found.</p>
-            ) : (
-              categories.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  image={product.image}
-                  name={product.name}
-                  price={product.price}
-                  status={product.status}
-                />
-              ))
-            )}
+            {categories.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                image={product.image}
+                name={product.name}
+                price={product.price}
+                status={product.status}
+              />
+            ))}
           </div>
         </div>
       </div>
