@@ -3,24 +3,23 @@ const fs = require("fs");
 const path = require("path");
 
 // ====================================== getCategories ======================================
-
 const getCategories = (req, res) => {
   db.query("SELECT * FROM categories", (err, result) => {
     if (err) {
       console.log(err);
-    } else {
-      res.send(result);
+      return res.status(500).json({ error: "Failed to fetch categories" });
     }
+    res.send(result.rows);
   });
 };
 
 // ====================================== addCategory ======================================
-
 const addCategory = (req, res) => {
   const title = req.body.title;
   const image = req.file ? req.file.filename : null;
-  const q = "INSERT INTO categories (title, image ,status) VALUES ($1, $2, $3)";
+  const q = "INSERT INTO categories (title, image, status) VALUES ($1, $2, $3)";
   const values = [title, image, "active"];
+
   db.query(q, values, (err, result) => {
     if (err) {
       console.log(err);
@@ -32,7 +31,6 @@ const addCategory = (req, res) => {
 };
 
 // ====================================== updateCategory ======================================
-
 const updateCategory = (req, res) => {
   const id = req.params.id;
   const { title } = req.body;
@@ -42,7 +40,7 @@ const updateCategory = (req, res) => {
   db.query(selectQuery, [id], (err, data) => {
     if (err) return res.status(500).json({ message: "Database Error" });
 
-    const oldImage = data[0]?.image;
+    const oldImage = data.rows[0]?.image;
 
     if (newImage && oldImage) {
       const oldImagePath = path.join(
@@ -57,7 +55,7 @@ const updateCategory = (req, res) => {
       }
     }
 
-    const updateQuery = "UPDATE categories SET title =?, image =? WHERE id =?";
+    const updateQuery = "UPDATE categories SET title = $1, image = $2 WHERE id = $3";
     const values = [title, newImage || oldImage, id];
 
     db.query(updateQuery, values, (err, result) => {
@@ -70,30 +68,27 @@ const updateCategory = (req, res) => {
 };
 
 // ====================================== getCategoryById ======================================
-
 const getCategoryById = (req, res) => {
   const id = req.params.id;
-  const q = "SELECT * FROM categories WHERE id =$1";
-  db.query(q, id, (err, result) => {
+  const q = "SELECT * FROM categories WHERE id = $1";
+  db.query(q, [id], (err, result) => {
     if (err) {
-      return res.status(500);
+      return res.status(500).json({ error: "Failed to fetch category" });
     }
-    return res.json(result);
+    return res.json(result.rows[0]);
   });
 };
 
 // ====================================== deleteCategory ======================================
-
 const deleteCategory = (req, res) => {
   const id = req.params.id;
 
-  const selectProductImages =
-    "SELECT image FROM products WHERE category_id = $1";
+  const selectProductImages = "SELECT image FROM products WHERE category_id = $1";
   db.query(selectProductImages, [id], (err, productData) => {
     if (err)
       return res.status(500).json({ message: "Error fetching product images" });
 
-    productData.forEach((product) => {
+    productData.rows.forEach((product) => {
       const imagePath = path.join(
         __dirname,
         "../../../client/public/uploads/productImage",
@@ -106,11 +101,11 @@ const deleteCategory = (req, res) => {
       }
     });
 
-    const selectImage = "SELECT image FROM categories WHERE id = ?";
+    const selectImage = "SELECT image FROM categories WHERE id = $1";
     db.query(selectImage, [id], (err, data) => {
       if (err) return res.status(500).json({ message: "Database Error" });
 
-      const imageName = data[0]?.image;
+      const imageName = data.rows[0]?.image;
       if (imageName) {
         const imagePath = path.join(
           __dirname,
@@ -118,12 +113,14 @@ const deleteCategory = (req, res) => {
           imageName
         );
 
-        fs.unlink(imagePath, (err) => {
-          if (err) console.error("Error deleting image:", err);
-        });
+        if (fs.existsSync(imagePath)) {
+          fs.unlink(imagePath, (err) => {
+            if (err) console.error("Error deleting image:", err);
+          });
+        }
       }
 
-      const deleteQuery = "DELETE FROM categories WHERE id = ?";
+      const deleteQuery = "DELETE FROM categories WHERE id = $1";
       db.query(deleteQuery, [id], (err, result) => {
         if (err)
           return res.status(500).json({ message: "Error deleting category" });
@@ -137,7 +134,6 @@ const deleteCategory = (req, res) => {
 };
 
 // ====================================== updateStatus ======================================
-
 const updateStatus = (req, res) => {
   const { id } = req.params;
   const { status } = req.body;

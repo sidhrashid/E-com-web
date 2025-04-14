@@ -1,181 +1,137 @@
 const db = require("../../connection/Connection");
 
-// Add or update cart item
+// Helper to run DB queries with Promise
+const runQuery = (query, params) => {
+  return new Promise((resolve, reject) => {
+    db.query(query, params, (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
+// ✅ Add or update cart item
 const addToCart = async (req, res) => {
   const { user_id, product_id, quantity } = req.body;
-
   if (!user_id || !product_id || !quantity) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    const checkSql =
-      "SELECT quantity FROM cart_items WHERE user_id = $1 AND product_id = $2";
-    const existingItem = await new Promise((resolve, reject) => {
-      db.query(checkSql, [user_id, product_id], (err, result) => {
-        if (err) reject(err);
-        resolve(result);
-      });
-    });
+    const existingItem = await runQuery(
+      "SELECT quantity FROM cart_items WHERE user_id = $1 AND product_id = $2",
+      [user_id, product_id]
+    );
 
     if (existingItem.length > 0) {
       const newQuantity = existingItem[0].quantity + quantity;
-      const updateSql =
-        "UPDATE cart_items SET quantity = $1 WHERE user_id = $2 AND product_id = $3";
-      await new Promise((resolve, reject) => {
-        db.query(
-          updateSql,
-          [newQuantity, user_id, product_id],
-          (err, result) => {
-            if (err) reject(err);
-            resolve(result);
-          }
-        );
-      });
+      await runQuery(
+        "UPDATE cart_items SET quantity = $1 WHERE user_id = $2 AND product_id = $3",
+        [newQuantity, user_id, product_id]
+      );
     } else {
-      const insertSql =
-        "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3)";
-      await new Promise((resolve, reject) => {
-        db.query(insertSql, [user_id, product_id, quantity], (err, result) => {
-          if (err) reject(err);
-          resolve(result);
-        });
-      });
+      await runQuery(
+        "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3)",
+        [user_id, product_id, quantity]
+      );
     }
 
     res.status(201).json({ message: "Cart updated successfully" });
   } catch (error) {
-    console.error("Error updating cart:", error);
+    console.error("Add to cart error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Fetch cart items with product details
+// ✅ Get cart items
 const getCartItems = async (req, res) => {
   const { user_id } = req.params;
-
-  if (!user_id) {
-    return res.status(400).json({ error: "User ID is required" });
-  }
+  if (!user_id) return res.status(400).json({ error: "User ID is required" });
 
   try {
-    const sql = `
-            SELECT ci.product_id AS id, ci.quantity, p.name, p.price, p.image
-            FROM cart_items ci
-            JOIN products p ON ci.product_id = p.id
-            WHERE ci.user_id = $1
-        `;
-    db.query(sql, [user_id], (err, result) => {
-      if (err) {
-        console.error("Error fetching cart items:", err);
-        return res.status(500).json({ error: "Internal server error" });
-      }
-      res.status(200).json(result);
-    });
+    const result = await runQuery(
+      `SELECT ci.product_id AS id, ci.quantity, p.name, p.price, p.image
+       FROM cart_items ci
+       JOIN products p ON ci.product_id = p.id
+       WHERE ci.user_id = $1`,
+      [user_id]
+    );
+    res.status(200).json(result);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Fetch cart items error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Delete cart items for a user
+// ✅ Delete item from cart
 const deleteCart = async (req, res) => {
   const { user_id, product_id } = req.body;
   if (!user_id || !product_id) {
-    return res
-      .status(400)
-      .json({ error: "User ID aur Product ID zaroori hain" });
+    return res.status(400).json({ error: "User ID and Product ID are required" });
   }
+
   try {
-    const sql = "DELETE FROM cart_items WHERE user_id = $1 AND product_id = $2";
-    await db.query(sql, [user_id, product_id]);
-    res.status(200).json({ message: "Cart item delete ho gaya" });
+    await runQuery("DELETE FROM cart_items WHERE user_id = $1 AND product_id = $2", [user_id, product_id]);
+    res.status(200).json({ message: "Cart item deleted successfully" });
   } catch (error) {
-    console.error("Delete mein error:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Update cart item quantity
+// ✅ Update quantity of a cart item
 const updateCartQuantity = async (req, res) => {
   const { user_id, product_id, quantity } = req.body;
-
   if (!user_id || !product_id || !quantity) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    const sql =
-      "UPDATE cart_items SET quantity = $1 WHERE user_id = $2 AND product_id = $3";
-    db.query(sql, [quantity, user_id, product_id], (err, result) => {
-      if (err) {
-        console.error("Error updating quantity:", err);
-        return res.status(500).json({ error: "Internal server error" });
-      }
-      res.status(200).json({ message: "Cart quantity updated successfully" });
-    });
+    await runQuery(
+      "UPDATE cart_items SET quantity = $1 WHERE user_id = $2 AND product_id = $3",
+      [quantity, user_id, product_id]
+    );
+    res.status(200).json({ message: "Quantity updated successfully" });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Quantity update error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Sync local cart to database (Corrected to replace quantities instead of adding)
+// ✅ Sync local cart (replace quantities)
 const syncCart = async (req, res) => {
   const { user_id, cartItems } = req.body;
-
-  if (!user_id || !cartItems || !Array.isArray(cartItems)) {
-    return res
-      .status(400)
-      .json({ error: "User ID and cart items are required" });
+  if (!user_id || !Array.isArray(cartItems)) {
+    return res.status(400).json({ error: "User ID and cart items are required" });
   }
 
   try {
     for (let item of cartItems) {
-      const { id: product_id, quantity } = item; // Assuming item has id and quantity
+      const { id: product_id, quantity } = item;
       if (!product_id || !quantity) continue;
 
-      const existingItem = await new Promise((resolve, reject) => {
-        db.query(
-          "SELECT quantity FROM cart_items WHERE user_id = $1 AND product_id = $2",
-          [user_id, product_id],
-          (err, result) => {
-            if (err) reject(err);
-            resolve(result);
-          }
-        );
-      });
+      const existing = await runQuery(
+        "SELECT quantity FROM cart_items WHERE user_id = $1 AND product_id = $2",
+        [user_id, product_id]
+      );
 
-      if (existingItem.length > 0) {
-        // Replace the existing quantity with the local storage quantity
-        await new Promise((resolve, reject) => {
-          db.query(
-            "UPDATE cart_items SET quantity = $1 WHERE user_id = $2 AND product_id = $3",
-            [quantity, user_id, product_id],
-            (err, result) => {
-              if (err) reject(err);
-              resolve(result);
-            }
-          );
-        });
+      if (existing.length > 0) {
+        await runQuery(
+          "UPDATE cart_items SET quantity = $1 WHERE user_id = $2 AND product_id = $3",
+          [quantity, user_id, product_id]
+        );
       } else {
-        // Insert new item if it doesn't exist
-        await new Promise((resolve, reject) => {
-          db.query(
-            "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3)",
-            [user_id, product_id, quantity],
-            (err, result) => {
-              if (err) reject(err);
-              resolve(result);
-            }
-          );
-        });
+        await runQuery(
+          "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3)",
+          [user_id, product_id, quantity]
+        );
       }
     }
+
     res.status(200).json({ message: "Cart synced successfully" });
   } catch (error) {
-    console.error("Error syncing cart:", error);
-    res.status(500).json({ error: "Error syncing cart" });
+    console.error("Sync cart error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

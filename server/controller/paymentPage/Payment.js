@@ -8,14 +8,14 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Create Razorpay Order
+// =================================== Create Razorpay Order ===================================
 const checkout = async (req, res) => {
   try {
     const { amount } = req.body;
     console.log("Checkout Called with Amount:", amount);
 
     const options = {
-      amount: Number(amount * 100), // in paise
+      amount: Number(amount * 100), // Convert to paise
       currency: "INR",
     };
 
@@ -32,59 +32,60 @@ const checkout = async (req, res) => {
   }
 };
 
-// Payment Verification and Insert into Database
+// =================================== Verify Payment and Save to DB ===================================
 const paymentVerification = async (req, res) => {
   try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      user_id,
+      order_id,
+      amount,
+    } = req.body;
+
     console.log("Payment Verification Called", req.body);
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
-    console.log("Body for Signature:", body);
-
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest("hex");
 
-    console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
-    console.log("Expected Signature:", expectedSignature);
-    console.log("Received Signature:", razorpay_signature);
-
     const isAuthentic = expectedSignature === razorpay_signature;
     console.log("Is Authentic:", isAuthentic);
 
     if (isAuthentic) {
-      const paymentData = {
-        order_id: null,
-        user_id: null,
-        payment_method: "razorpay",
-        payment_status: "Completed",
-        transaction_id: razorpay_payment_id,
-        amount: null, // Add amount if needed
-        status: "Completed",
-      };
-      console.log("Payment Data:", paymentData);
+      const paymentQuery = `
+        INSERT INTO payments (
+          order_id,
+          user_id,
+          payment_method,
+          payment_status,
+          transaction_id,
+          amount,
+          status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `;
 
-      const [result] = await db.query(
-        `INSERT INTO payments (order_id, user_id, payment_method, payment_status, transaction_id, amount, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          paymentData.order_id,
-          paymentData.user_id,
-          paymentData.payment_method,
-          paymentData.payment_status,
-          paymentData.transaction_id,
-          paymentData.amount,
-          paymentData.status,
-        ]
-      );
-      console.log("DB Insert Result:", result);
+      const values = [
+        order_id || null,
+        user_id || null,
+        "razorpay",
+        "Completed",
+        razorpay_payment_id,
+        amount || null,
+        "Completed",
+      ];
+
+      const result = await db.query(paymentQuery, values);
+      console.log("Payment recorded in DB");
 
       return res.redirect(
         `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
       );
     } else {
-      console.log("Signature verification failed");
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
   } catch (error) {
