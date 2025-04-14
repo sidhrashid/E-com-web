@@ -3,48 +3,47 @@ const fs = require("fs");
 const path = require("path");
 
 // ========================================get all products=====================================
-
 const getAllProducts = (req, res) => {
   const q = "SELECT * FROM products";
   db.query(q, (err, result) => {
     if (err) {
       return res.status(500);
     }
-    return res.json(result);
+    return res.json(result.rows); // Added .rows to get the result properly
   });
 };
 
 // ========================================get products by id===================================
 const getProductsById = (req, res) => {
   const id = req.params.id;
-  const q = "SELECT * FROM products WHERE id =$1";
+  const q = "SELECT * FROM products WHERE id = $1";
   db.query(q, [id], (err, result) => {
     if (err) {
       return res.status(500);
     }
-    return res.json(result);
+    return res.json(result.rows); // Added .rows to get the result properly
   });
 };
 
 // ========================================add products=========================================
 const addProducts = (req, res) => {
-  const { name, price, description, category_id   } = req.body;
+  const { name, price, description, category_id } = req.body;
   const image = req.file ? req.file.filename : null;
 
   const q =
-    "INSERT INTO products (name, price, description, image, category_id, status) VALUES ($1, $2, $3, $4, $5, $6)";
+    "INSERT INTO products (name, price, description, image, category_id, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
 
-  const values = [name, price, description, image, category_id ,"active"];
+  const values = [name, price, description, image, category_id, "active"];
 
   db.query(q, values, (err, data) => {
     if (err) {
-      console.error("Database Error:", err); // Debugging error
+      console.error("Database Error:", err);
       return res.status(500).json({ error: "Internal Server Error" });
     }
     return res.json({
       success: true,
       message: "Product added successfully",
-      data,
+      data: data.rows[0], // Returning the newly added product
     });
   });
 };
@@ -60,7 +59,7 @@ const updateProducts = (req, res) => {
   db.query(selectQuery, [id], (err, data) => {
     if (err) return res.status(500).json({ message: "Database Error" });
 
-    const oldImage = data[0]?.image;
+    const oldImage = data.rows[0]?.image;
 
     if (newImage && oldImage) {
       const oldImagePath = path.join(
@@ -76,26 +75,28 @@ const updateProducts = (req, res) => {
     }
 
     const updateQuery =
-      "UPDATE products SET name =?, price =?, description =?, category_id=?, image=? WHERE id =?";
+      "UPDATE products SET name = $1, price = $2, description = $3, category_id = $4, image = $5 WHERE id = $6 RETURNING *";
     const values = [name, price, description, category_id, newImage || oldImage, id];
     db.query(updateQuery, values, (err, result) => {
       if (err)
         return res.status(500).json({ message: "Error updating product" });
 
-      return res.json({ message: "Product updated successfully", result });
+      return res.json({
+        message: "Product updated successfully",
+        data: result.rows[0], // Returning the updated product
+      });
     });
   });
 };
 
 // ========================================delete products======================================
-
 const deleteProducts = (req, res) => {
   const id = req.params.id;
   const selectImage = "SELECT image FROM products WHERE id = $1";
   db.query(selectImage, [id], (err, data) => {
     if (err) return res.status(500).json({ message: "Database Error" });
 
-    const imageName = data[0]?.image;
+    const imageName = data.rows[0]?.image;
     if (imageName) {
       const imagePath = path.join(
         __dirname,
@@ -108,12 +109,15 @@ const deleteProducts = (req, res) => {
       });
     }
 
-    const q = "DELETE FROM products WHERE id =?";
-    db.query(q, id, (err, result) => {
+    const q = "DELETE FROM products WHERE id = $1 RETURNING *";
+    db.query(q, [id], (err, result) => {
       if (err) {
         return res.status(500);
       }
-      return res.json(200);
+      return res.json({
+        message: "Product deleted successfully",
+        data: result.rows[0], // Returning the deleted product
+      });
     });
   });
 };
@@ -123,12 +127,12 @@ const getProductsByCategory = (req, res) => {
   const category = req.params.categories;
   console.log(category);
   const q = "SELECT * FROM products WHERE category_id = $1";
-  db.query(q, category, (err, result) => {
+  db.query(q, [category], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send(err);
     } else {
-      res.send(result);
+      res.send(result.rows); // Added .rows to get the result properly
     }
   });
 };
@@ -138,15 +142,15 @@ const updateStatus = (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const query = "UPDATE products SET status = $1 WHERE id = $2";
-  db.query(query, [status, id], (err) => {
+  const query = "UPDATE products SET status = $1 WHERE id = $2 RETURNING *";
+  db.query(query, [status, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    return res.json({ message: "Products status updated successfully!" });
+    return res.json({
+      message: "Product status updated successfully!",
+      data: result.rows[0], // Returning the updated product status
+    });
   });
 };
-
-
-
 
 module.exports = {
   getAllProducts,
