@@ -1,20 +1,8 @@
 const multer = require("multer");
-const path = require("path");
 
-const storageConfig = (folderName) =>
-  multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(
-        null,
-        path.join(__dirname, `../../client/public/uploads/${folderName}`)
-      );
-    },
-    filename: function (req, file, cb) {
-      cb(null, Date.now() + file.originalname);
-    },
-  });
+// Image ko memory me temporarily store karega (na ki disk me)
+const storage = multer.memoryStorage();
 
-const categoryFolder = multer({ storage: storageConfig("categoryImage") });
-const productsFolder = multer({ storage: storageConfig("productImage") });
+const upload = multer({ storage });
 
-module.exports = { categoryFolder, productsFolder };
+module.exports = upload;
