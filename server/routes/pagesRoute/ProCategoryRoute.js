@@ -1,6 +1,7 @@
 const express = require("express");
 const Category = require("../../controller/pages/ProductsCategory");
-const {categoryFolder} = require("../../middleware/fileHandler");
+// const {categoryFolder} = require("../../middleware/fileHandler");
+const upload = require("../../middleware/fileHandler"); // Correct path to fileHandler
 
 const router = express.Router();
 
@@ -9,12 +10,12 @@ router.get("/getcategorybyid/:id", Category.getCategoryById);
 router.delete("/deletecategory/:id", Category.deleteCategory);
 router.post(
   "/addcategory",
-  categoryFolder.single("image"),
+  upload.single("image"),
   Category.addCategory
 );
 router.put(
   "/updatecategory/:id",
-  categoryFolder.single("image"),
+  upload.single("image"),
   Category.updateCategory
 );
 

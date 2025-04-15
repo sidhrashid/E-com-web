@@ -1,4 +1,4 @@
-const cloudinary = require("../config/cloudinary");
+const cloudinary = require("../../config/cloudinary"); // Correct path to cloudinary config
 const stream = require("stream");
 
 const uploadImage = async (req, res) => {
