@@ -58,59 +58,54 @@ const sendOtp = async (req, res) => {
 const registerNewUser = async (req, res) => {
   try {
     const { username, email_or_phone, password, otp } = req.body;
-    console.log(req.body);
-
-    // Validation for missing fields
+    console.log(req.body); // Log incoming request body
     if (!username || !email_or_phone || !password || !otp) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Validate OTP
+    // Log statements for debugging
+    console.log('All fields are present. Validating OTP...');
+    
     const storedOtp = otpStore.get(email_or_phone);
-    if (
-      !storedOtp ||
-      storedOtp.otp !== otp ||
-      Date.now() > storedOtp.expiresAt
-    ) {
+    if (!storedOtp || storedOtp.otp !== otp || Date.now() > storedOtp.expiresAt) {
+      console.log('Invalid OTP');
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
-    otpStore.delete(email_or_phone); // Remove OTP after verification
 
-    // Check if user already exists
-    const checkUserQuery =
-      "SELECT * FROM users WHERE username = $1 OR email_or_phone = $2";
+    console.log('OTP Validated. Checking user existence...');
+    
+    // Check if user exists
+    const checkUserQuery = "SELECT * FROM users WHERE username = $1 OR email_or_phone = $2";
+    db.query(checkUserQuery, [username, email_or_phone], async (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database error." });
+      }
+      if (result.rows.length > 0) {
+        console.log('User already exists');
+        return res.status(400).json({ message: "Username or Email already exists." });
+      }
 
-    // Use await with query
-    const result = await db.query(checkUserQuery, [username, email_or_phone]);
-
-    if (result.rows.length > 0) {
-      return res
-        .status(400)
-        .json({ message: "Username or Email already exists." });
-    }
-
-    // Hash password & insert new user
-    const hashPassword = await bcrypt.hash(password, 10);
-
-    const insertUserQuery = `
-      INSERT INTO users (username, email_or_phone, password, otp) 
-      VALUES ($1, $2, $3, $4)
-    `;
-
-    // Await the query for inserting user
-    await db.query(insertUserQuery, [
-      username,
-      email_or_phone,
-      hashPassword,
-      otp,
-    ]);
-
-    return res.status(201).json({ message: "User registered successfully." });
+      console.log('User does not exist. Proceeding with registration...');
+      
+      // Hash password & insert user
+      const hashPassword = await bcrypt.hash(password, 10);
+      db.query(
+        "INSERT INTO users (username, email_or_phone, password, otp) VALUES ($1, $2, $3, $4)",
+        [username, email_or_phone, hashPassword, otp],
+        (err) => {
+          console.error("Insert error:", err);
+          if (err) return res.status(500).json({ message: "Database error occurred." });
+          return res.status(201).json({ message: "User registered successfully." });
+        }
+      );
+    });
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(500).json({ message: "Server error occurred." });
   }
 };
+
 
 // User Login
 const loginClientUser = async (req, res) => {
