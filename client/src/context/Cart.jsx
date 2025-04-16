@@ -14,7 +14,7 @@ export const CartProvider = ({ children }) => {
 
     const user = localStorage.getItem("user_Id");
     console.log( "user", user);
-    const BASE_URL = "http://https://e-com-web-n1aw.onrender.com";
+    const BASE_URL = "https://e-com-web-n1aw.onrender.com";
 
     const hasSyncedCart = useRef(false); // ✅ Prevent multiple syncs
 
