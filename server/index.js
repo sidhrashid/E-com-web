@@ -28,6 +28,7 @@ const PORT = process.env.PORT;
 const URL = process.env.URL;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: true }));
 

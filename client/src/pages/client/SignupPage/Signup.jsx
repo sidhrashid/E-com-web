@@ -4,10 +4,8 @@ import { useState } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 
-
 const UserRegisterAPI = import.meta.env.VITE_USER_REGISTER_API;
 const SendOTPAPI = import.meta.env.VITE_SEND_OTP_API;
-
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -31,6 +29,12 @@ const SignUp = () => {
       return;
     }
 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(userData.email_or_phone)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
     try {
       const res = await axios.post(`${SendOTPAPI}`, { email_or_phone: userData.email_or_phone });
 
@@ -45,13 +49,19 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (otpSent && !userData.otp) {
+      toast.error("Please enter OTP.");
+      return;
+    }
     try {
       const res = await axios.post(`${UserRegisterAPI}`, userData);
 
       if (res.status === 201) {
-        setTimeout(() => toast.success(res.data.message), 1000);
+        setTimeout(() => {
+          toast.success(res.data.message);
+          navigate("/login");
+        }, 1000);
       }
-      navigate("/login")
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong.");
     }
@@ -61,14 +71,9 @@ const SignUp = () => {
     <div className="flex items-center justify-center">
       <ToastContainer />
       <div className="bg-white rounded-lg p-2 shadow-md flex w-full max-w-5xl">
-        
         {/* Left Image Section */}
         <div className="w-1/2 hidden md:flex">
-          <img
-            src={cart}
-            alt="Signup"
-            className="max-w-full h-auto rounded-lg"
-          />
+          <img src={cart} alt="Signup" className="max-w-full h-auto rounded-lg" />
         </div>
 
         {/* Right Form Section */}
@@ -87,7 +92,6 @@ const SignUp = () => {
               className="w-full px-4 py-2 mb-4 border rounded-lg focus:ring-2 focus:ring-red-500"
             />
 
-            {/* Email / Phone Input + Send OTP Button */}
             <div className="relative w-full mb-4">
               <input
                 type="text"
@@ -97,7 +101,7 @@ const SignUp = () => {
                 required
                 placeholder="Email or Phone"
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500"
-              />  
+              />
               <button
                 type="button"
                 onClick={handleSendOTP}
@@ -107,7 +111,6 @@ const SignUp = () => {
               </button>
             </div>
 
-            {/* OTP Input (Only shows when Send OTP is clicked) */}
             {otpSent && (
               <input
                 type="text"
@@ -120,7 +123,6 @@ const SignUp = () => {
               />
             )}
 
-            {/* Password Input */}
             <div className="relative w-full">
               <input
                 type={showPassword ? "text" : "password"}
@@ -160,4 +162,5 @@ const SignUp = () => {
     </div>
   );
 };
+
 export default SignUp;
