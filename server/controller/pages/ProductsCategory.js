@@ -5,12 +5,15 @@ const fs = require("fs")
 const getCategories = (req, res) => {
   db.query("SELECT * FROM categories", (err, result) => {
     if (err) {
-      console.log(err);
+      console.log("DB Error:", err);
+      res.status(500).send("Database error");
     } else {
+      console.log("Categories Fetched:", result.rows); // check here
       res.send(result.rows);
     }
   });
 };
+
 
 const addCategory = (req, res) => {
   const title = req.body.title;

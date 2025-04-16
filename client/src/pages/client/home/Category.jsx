@@ -18,6 +18,7 @@ const Category = () => {
     try {
       const res = await axios.get(GetCategoryApi);
       setCategories(res.data);
+      console.log("API Response:", res.data); 
     } catch (error) {
       console.log("Error fetching categories:", error);
     }
@@ -71,7 +72,7 @@ const Category = () => {
               className="min-w-[165px] bg-white rounded-lg p-4 text-center shadow-md hover:shadow-lg transition"
             >
               <img
-                src={category.image}
+                src={category.image || "https://via.placeholder.com/150"}
                 alt={category.name}
                 className="w-full h-36 object-cover rounded-md"
               />
