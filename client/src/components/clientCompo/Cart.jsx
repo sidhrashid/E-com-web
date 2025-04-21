@@ -19,7 +19,7 @@ const Cart = () => {
             {cart.map((item) => (
               <div key={item.id} className="flex items-center gap-6 p-4 border-b border-gray-300 bg-white/60 rounded-lg shadow-sm mb-3">
                 <NavLink to={`/productsdetail/${item.id}`}>
-                  <img src={`/uploads/productImage/${item.image}`} alt={item.name} className="w-20 h-20 object-cover rounded-xl shadow-sm" />
+                  <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl shadow-sm" />
                 </NavLink>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">

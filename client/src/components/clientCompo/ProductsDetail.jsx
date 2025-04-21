@@ -43,7 +43,7 @@ const ProductsDetail = () => {
                 {/* Product Image */}
                 <div className=" md:w-1/2 bg-gray-200 flex items-center justify-center p-6">
                     <img
-                        src={`/uploads/productImage/${product.image}`}
+                        src={product.image}
                         alt={product.name}
                         className="sm:object-contain sm:h-96 rounded-lg"
                     />

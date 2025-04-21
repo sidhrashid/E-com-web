@@ -102,7 +102,7 @@ const AllAdminUsers = () => {
                     <td className="px-4 py-3 text-center">{user.id}</td>
                     <td className="px-4 py-3 flex justify-center">
                       <img
-                        src={`/uploads/${user.image}`}
+                        src={user.image}
                         alt={user.username}
                         className="w-10 h-10 rounded-full border border-gray-300"
                       />
