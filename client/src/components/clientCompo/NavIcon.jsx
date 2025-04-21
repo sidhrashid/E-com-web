@@ -26,8 +26,8 @@ function NavIcon() {
         <img
           src={
             userInfo?.picture ||
-            userInfo?.picture_url   //||//
-            // "https://i.pravatar.cc/100"
+            userInfo?.picture_url   ||
+            "https://i.pravatar.cc/100"
           }
           alt="Profile"
           className="w-8 h-8 rounded-full cursor-pointer"

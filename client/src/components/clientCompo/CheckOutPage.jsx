@@ -14,7 +14,6 @@ const CheckoutPage = () => {
     zip: "",
     paymentMethod: "razorpay", // Default to Razorpay since backend uses it
   });
-  const [loading, setLoading] = useState(false); // Loading state for UX
 
   const userInfo = JSON.parse(localStorage.getItem("user_Id"));
 
@@ -36,7 +35,6 @@ const CheckoutPage = () => {
   // Razorpay Checkout Handler
   const checkoutHandler = async (amount) => {
     try {
-      setLoading(true);
 
       // Call backend to create Razorpay order
       const {
@@ -69,11 +67,7 @@ const CheckoutPage = () => {
           console.log("Payment Success:", response);
           alert("Payment Successful! 🎉");
         },
-        modal: {
-          ondismiss: () => {
-            setLoading(false); // Reset loading if modal is closed
-          },
-        },
+      
       };
 
       const rzp = new window.Razorpay(options);
@@ -82,12 +76,10 @@ const CheckoutPage = () => {
       rzp.on("payment.failed", (response) => {
         console.error("Payment Failed:", response.error);
         alert("Payment Failed. Please try again.");
-        setLoading(false);
       });
     } catch (error) {
       console.error("Checkout Error:", error.message);
       alert("Something went wrong. Please try again.");
-      setLoading(false);
     }
   };
 
@@ -280,12 +272,9 @@ const CheckoutPage = () => {
 
                   <button
                     type="submit" // Changed to submit to trigger form
-                    disabled={loading || cart.length === 0}
-                    className={`w-full mt-4 sm:mt-5 py-2 sm:py-3 bg-orange-500 text-white rounded-lg font-semibold text-lg hover:bg-orange-600 transition ${
-                      loading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className="w-full mt-4 sm:mt-5 py-2 sm:py-3 bg-orange-500 text-white rounded-lg font-semibold text-lg hover:bg-orange-600 transition "
                   >
-                    {loading ? "Processing..." : "✅ Continue to Pay"}
+                    ✅ Continue to Pay
                   </button>
                 </div>
               </div>
