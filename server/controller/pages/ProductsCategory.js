@@ -59,7 +59,7 @@ const updateCategory = async (req, res) => {
     const updateQuery = "UPDATE categories SET title = $1, image = $2 WHERE id = $3";
     const values = [title, newImage || oldImageUrl, id];
 
-    db.query(updateQuery, (err) => {
+    db.query(updateQuery, values ,(err) => {
       if (err) return res.status(500).json({ message: "Error updating category" });
       return res.json({ message: "Category updated successfully" });
     });
