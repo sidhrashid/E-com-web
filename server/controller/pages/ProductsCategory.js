@@ -70,7 +70,7 @@ const updateCategory = async (req, res) => {
 const getCategoryById = (req, res) => {
   const id = req.params.id;
   const q = "SELECT * FROM categories WHERE id =$1";
-  db.query(q, id, (err, result) => {
+  db.query(q, [id], (err, result) => {
     if (err) {
       return res.status(500);
     }

@@ -1,4 +1,3 @@
-
 const db = require("../../connection/Connection");
 const cloudinary = require("cloudinary").v2;
 
@@ -6,7 +5,9 @@ const getAllProducts = (req, res) => {
   const q = "SELECT * FROM products";
   db.query(q, (err, result) => {
     if (err) {
-      return res.status(500).json({ message: "Database Error", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Database Error", error: err.message });
     }
     return res.json(result.rows);
   });
@@ -15,9 +16,11 @@ const getAllProducts = (req, res) => {
 const getProductsById = (req, res) => {
   const id = req.params.id;
   const q = "SELECT * FROM products WHERE id =$1";
-  db.query(q, id, (err, result) => {
+  db.query(q, [id], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: "Database Error", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Database Error", error: err.message });
     }
     return res.json(result.rows);
   });
@@ -26,7 +29,7 @@ const getProductsById = (req, res) => {
 const addProducts = (req, res) => {
   const { name, price, description, category_id } = req.body;
   const image = req.file ? req.file.path : null; // ✅ NOT .filename
-  console.log("productImage", req.file)
+  console.log("productImage", req.file);
 
   const q =
     "INSERT INTO products (name, price, description, image, status, category_id) VALUES ($1, $2, $3, $4, $5, $6)";
@@ -36,7 +39,9 @@ const addProducts = (req, res) => {
   db.query(q, values, (err, data) => {
     if (err) {
       console.error("Database Error:", err);
-      return res.status(500).json({ message: "Internal Server Error", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Internal Server Error", error: err.message });
     }
     return res.json({ message: "Product added successfully" });
   });
@@ -63,14 +68,27 @@ const updateProducts = async (req, res) => {
       console.log("Old image deleted:", publicId);
     }
 
-    const updateQuery = "UPDATE products SET name =$1, price =$2, description =$3, category_id=$4, image=$5 WHERE id =$6";
-    const values = [name, price, description, category_id, newImage || oldImageUrl, id];
+    const updateQuery =
+      "UPDATE products SET name =$1, price =$2, description =$3, category_id=$4, image=$5 WHERE id =$6";
+    const values = [
+      name,
+      price,
+      description,
+      category_id,
+      newImage || oldImageUrl,
+      id,
+    ];
     const result = await db.query(updateQuery, values);
 
-    return res.json({ message: "Product updated successfully", updatedProduct: result.rows[0] });
+    return res.json({
+      message: "Product updated successfully",
+      updatedProduct: result.rows[0],
+    });
   } catch (err) {
     console.error("Error updating product:", err);
-    return res.status(500).json({ message: "Error updating product", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Error updating product", error: err.message });
   }
 };
 
@@ -99,7 +117,9 @@ const deleteProducts = async (req, res) => {
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error("Error deleting product:", err);
-    return res.status(500).json({ message: "Internal Server Error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Internal Server Error", error: err.message });
   }
 };
 
@@ -109,7 +129,12 @@ const getProductsByCategory = (req, res) => {
   db.query(q, [category], (err, result) => {
     if (err) {
       console.log(err);
-      res.status(500).json({ message: "Error fetching products by category", error: err.message });
+      res
+        .status(500)
+        .json({
+          message: "Error fetching products by category",
+          error: err.message,
+        });
     } else {
       res.json(result.rows);
     }
@@ -123,7 +148,9 @@ const updateStatus = (req, res) => {
   const query = "UPDATE products SET status = $1 WHERE id = $2";
   db.query(query, [status, id], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: "Error updating product status", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Error updating product status", error: err.message });
     }
     return res.json({ message: "Product status updated successfully!" });
   });
