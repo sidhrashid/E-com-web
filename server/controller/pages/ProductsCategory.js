@@ -2,7 +2,7 @@ const db = require("../../connection/Connection");
 const cloudinary = require("cloudinary").v2;
 
 const getCategories = (req, res) => {
-  db.query("SELECT * FROM categories", (err, result) => {
+  db.query("SELECT * FROM categories ORDER BY id ASC", (err, result) => {
     if (err) {
       console.log(err);
     } else {

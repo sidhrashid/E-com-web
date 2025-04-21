@@ -90,7 +90,7 @@ const loginAdminUser = async (req, res) => {
 
 // ==================================== (show users api) ====================================
 const getAdminUsers = (req, res) => {
-    const sqlQuery = "SELECT * FROM admin_users";
+    const sqlQuery = "SELECT * FROM admin_users ORDER BY id ASC";
     db.query(sqlQuery, (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Database query error" });
