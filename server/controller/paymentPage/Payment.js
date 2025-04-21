@@ -83,7 +83,7 @@ const paymentVerification = async (req, res) => {
       console.log("Payment recorded in DB");
 
       return res.redirect(
-        `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
+        `https://e-com-web-n1aw.onrender.com/paymentsuccess?reference=${razorpay_payment_id}`
       );
     } else {
       return res.status(400).json({ success: false, message: "Invalid signature" });

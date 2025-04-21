@@ -23,6 +23,7 @@ const category = require("./routes/pagesRoute/ProCategoryRoute");
 const adminUser = require("./routes/loginRoute/AdminLoginRoute");
 const cartItem = require("./routes/pagesRoute/CartItemRoutes");
 const paymentRoutes = require("./routes/paymentMethodRoute/PaymentRoute");
+const webhookRoute = require("./routes/paymentMethodRoute/WebhooksRoute");
 
 const PORT = process.env.PORT;
 const URL = process.env.URL;
@@ -38,6 +39,7 @@ app.use("/", category);
 app.use("/", adminUser);
 app.use("/", cartItem);
 app.use("/", paymentRoutes);
+app.use("/", webhookRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${URL}`);
