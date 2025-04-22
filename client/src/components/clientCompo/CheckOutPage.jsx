@@ -30,19 +30,24 @@ const CheckoutPage = () => {
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // PIN Code auto-fill logic
+  
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  
     if (name === "zip" && value.length === 6) {
       try {
         const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
         const data = await res.json();
+  
         if (data[0].Status === "Success") {
           const postOffice = data[0].PostOffice[0];
+          // Only update city/state if user hasn't already typed something
           setFormData((prev) => ({
             ...prev,
-            city: postOffice.District,
-            state: postOffice.State,
+            city: prev.city || postOffice.District,
+            state: prev.state || postOffice.State,
           }));
         }
       } catch (error) {
@@ -50,6 +55,7 @@ const CheckoutPage = () => {
       }
     }
   };
+  
 
   const checkoutHandler = async (amount) => {
     try {
