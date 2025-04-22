@@ -117,14 +117,16 @@ const CheckoutPage = () => {
                 🛒 Checkout
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                {/* Personal Info */}
                 <div className="sm:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-700">
+                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">
                     Personal Information
                   </h3>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600">
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
                     Full Name
                   </label>
                   <input
@@ -134,11 +136,12 @@ const CheckoutPage = () => {
                     onChange={handleChange}
                     required
                     placeholder="John Doe"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600">
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
                     Phone Number
                   </label>
                   <input
@@ -148,32 +151,19 @@ const CheckoutPage = () => {
                     onChange={handleChange}
                     required
                     placeholder="123-456-7890"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600">
-                    State
-                  </label>
-                  <input
-                    type="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    required
-                    placeholder="Your State"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 mt-4">
-                  <h3 className="text-lg font-medium text-gray-700">
+                {/* Shipping Address */}
+                <div className="sm:col-span-2 mt-8">
+                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">
                     Shipping Address
                   </h3>
                 </div>
+
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-600">
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
                     Street Address
                   </label>
                   <input
@@ -182,26 +172,12 @@ const CheckoutPage = () => {
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    placeholder="123 Main St"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                    placeholder="House No. Street Name, Area, Building Name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                    placeholder="New York"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600">
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
                     ZIP Code
                   </label>
                   <input
@@ -211,19 +187,49 @@ const CheckoutPage = () => {
                     onChange={handleChange}
                     required
                     placeholder="10001"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                    placeholder="New York"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
-                <div className="sm:col-span-2 mt-4">
-                  <h3 className="text-lg font-medium text-gray-700">
+                <div className="sm:col-span-2">
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    required
+                    placeholder="Your State"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Payment Method */}
+                <div className="sm:col-span-2 mt-8">
+                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">
                     Payment Method
                   </h3>
                   <select
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleChange}
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="razorpay">Razorpay</option>
                     <option value="credit_card">Credit Card</option>

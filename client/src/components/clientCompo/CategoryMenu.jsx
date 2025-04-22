@@ -18,7 +18,7 @@ export const CategoryMenu = () => {
   const fetchAllData = async () => {
     try {
       const res = await axios.get(GetCategoryApi);
-      setCategories(res.data.data);
+      setCategories(res.data);
     } catch (error) {
       console.log("Error fetching categories:", error);
     }
