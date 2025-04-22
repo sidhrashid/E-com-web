@@ -39,7 +39,7 @@ const CheckoutPage = () => {
       const {
         data: { razorpayOrder, order_id },
       } = await axios.post(`${BackendUrl}/checkout`, {
-        user_id: userInfo.id,
+        user_id: userInfo,
         amount,
         items: cart.map((item) => ({
           product_id: item.id,
