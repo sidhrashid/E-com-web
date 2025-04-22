@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useCart } from "../../context/Cart";
 import axios from "axios";
 
+const BackendUrl = "https://e-com-web-n1aw.onrender.com";
+
 const CheckoutPage = () => {
   const { cart, totalAmount } = useCart();
   const [formData, setFormData] = useState({
@@ -35,11 +37,10 @@ const CheckoutPage = () => {
   // Razorpay Checkout Handler
   const checkoutHandler = async (amount) => {
     try {
-
       // Call backend to create Razorpay order
       const {
         data: { order },
-      } = await axios.post("http://localhost:3000/checkout", {
+      } = await axios.post(`${BackendUrl}/checkout`, {
         amount,
       });
 
@@ -50,7 +51,7 @@ const CheckoutPage = () => {
         name: "E-com",
         description: "Tutorial of RazorPay",
         order_id: order.id, // Order ID from backend
-        callback_url: "http://localhost:3000/payment-verification",
+        callback_url: `${BackendUrl}/payment-verification`,
         prefill: {
           name: formData.name,
           email: formData.email,
@@ -67,7 +68,6 @@ const CheckoutPage = () => {
           console.log("Payment Success:", response);
           alert("Payment Successful! 🎉");
         },
-      
       };
 
       const rzp = new window.Razorpay(options);
