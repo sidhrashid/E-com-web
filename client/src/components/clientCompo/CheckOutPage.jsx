@@ -211,7 +211,7 @@ const CheckoutPage = () => {
                     type="text"
                     name="city"
                     value={formData.city}
-                    readOnly
+                    // readOnly
                     placeholder="Auto-filled from ZIP"
                     className="bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded-md"
                   />
@@ -225,7 +225,7 @@ const CheckoutPage = () => {
                     type="text"
                     name="state"
                     value={formData.state}
-                    readOnly
+                    // readOnly
                     placeholder="Auto-filled from ZIP"
                     className="bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded-md"
                   />
