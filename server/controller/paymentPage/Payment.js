@@ -99,13 +99,13 @@ const paymentVerification = async (req, res) => {
           order_id || null,
           user_id || null,
           "razorpay",
-          "Completed",
+          payment_status ,
           razorpay_payment_id,
           amount || null,
           "Completed",
         ];
 
-        await db.query(paymentQuery, values);
+        await db.query(paymentQuery, values); 
         console.log("💾 Payment recorded in DB");
       } else {
         console.log("⚠️ Payment already exists in DB");
