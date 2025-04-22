@@ -8,9 +8,8 @@ const CheckoutPage = () => {
   const { cart, totalAmount } = useCart();
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
-    village: "",
     phone: "",
+    state: "",
     address: "",
     city: "",
     zip: "",
@@ -68,11 +67,8 @@ const CheckoutPage = () => {
         },
         handler: async function (response) {
           // 2. Verify Payment on Backend
-          const {
-            razorpay_order_id,
-            razorpay_payment_id,
-            razorpay_signature,
-          } = response;
+          const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+            response;
 
           await axios.post(`${BackendUrl}/payment-verification`, {
             razorpay_order_id,
@@ -143,34 +139,6 @@ const CheckoutPage = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="your@email.com"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600">
-                    Village
-                  </label>
-                  <input
-                    type="text"
-                    name="village"
-                    value={formData.village}
-                    onChange={handleChange}
-                    required
-                    placeholder="Your Village"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600">
                     Phone Number
                   </label>
                   <input
@@ -180,6 +148,21 @@ const CheckoutPage = () => {
                     onChange={handleChange}
                     required
                     placeholder="123-456-7890"
+                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600">
+                    State
+                  </label>
+                  <input
+                    type="state"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    required
+                    placeholder="Your State"
                     className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
                   />
                 </div>
