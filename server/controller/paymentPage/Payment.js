@@ -11,26 +11,49 @@ const razorpay = new Razorpay({
 // =================================== Create Razorpay Order ===================================
 const checkout = async (req, res) => {
   try {
-    const { amount } = req.body;
-    console.log("Checkout Called with Amount:", amount);
+    const { user_id, amount, items } = req.body;
 
-    const options = {
-      amount: Number(amount * 100), // Convert to paise
+    // 1. Insert into orders table
+    const orderInsertQuery = `
+      INSERT INTO orders (user_id, total_amount)
+      VALUES ($1, $2)
+      RETURNING id;
+    `;
+    const orderResult = await db.query(orderInsertQuery, [user_id, amount]);
+    const newOrderId = orderResult.rows[0].id;
+    console.log("📝 Order inserted:", newOrderId);
+
+    // 2. Insert into order_items table
+    const itemInsertPromises = items.map((item) => {
+      return db.query(
+        `INSERT INTO order_items (
+           order_id, product_id, quantity, price, created_at, updated_at
+         ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`,
+        [newOrderId, item.product_id, item.quantity, item.price]
+      );
+    });
+    await Promise.all(itemInsertPromises);
+    console.log("🛒 Order items inserted");
+
+    // 3. Create Razorpay Order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Number(amount * 100),
       currency: "INR",
-    };
+      receipt: `order_rcptid_${newOrderId}`,
+    });
 
-    const order = await razorpay.orders.create(options);
-    console.log("Order Created:", order);
-
+    // 4. Respond to frontend
     res.status(200).json({
       success: true,
-      order,
+      razorpayOrder,
+      order_id: newOrderId,
     });
   } catch (error) {
-    console.error("Order creation error:", error.message);
-    res.status(500).json({ success: false, message: "Order creation failed" });
+    console.error("Checkout Error:", error.message);
+    res.status(500).json({ success: false, message: "Checkout failed" });
   }
 };
+
 
 // =================================== Verify Payment and Save to DB ===================================
 const paymentVerification = async (req, res) => {
@@ -97,6 +120,6 @@ const paymentVerification = async (req, res) => {
 module.exports = {
   checkout,
   paymentVerification,
-};
+}; 
 
 

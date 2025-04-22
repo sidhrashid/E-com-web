@@ -14,12 +14,11 @@ const CheckoutPage = () => {
     address: "",
     city: "",
     zip: "",
-    paymentMethod: "razorpay", // Default to Razorpay since backend uses it
+    paymentMethod: "razorpay",
   });
 
   const userInfo = JSON.parse(localStorage.getItem("user_Id"));
 
-  // Pre-fill form with user info from localStorage
   useEffect(() => {
     if (userInfo) {
       setFormData((prev) => ({
@@ -34,24 +33,28 @@ const CheckoutPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Razorpay Checkout Handler
   const checkoutHandler = async (amount) => {
     try {
-      // Call backend to create Razorpay order
+      // 1. Create Razorpay Order & Save Order Data to DB
       const {
-        data: { order },
+        data: { razorpayOrder, order_id },
       } = await axios.post(`${BackendUrl}/checkout`, {
+        user_id: userInfo.id,
         amount,
+        items: cart.map((item) => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
       });
 
       const options = {
-        key: "rzp_test_sXWDKsuDaX1kkN", // Replace with your Razorpay Key ID (or use env vars)
-        amount: order.amount, // Amount in paise from backend
+        key: "rzp_test_sXWDKsuDaX1kkN", // Razorpay Key ID
+        amount: razorpayOrder.amount,
         currency: "INR",
         name: "E-com",
-        description: "Tutorial of RazorPay",
-        order_id: order.id, // Order ID from backend
-        callback_url: `${BackendUrl}/payment-verification`,
+        description: "Order Payment",
+        order_id: razorpayOrder.id,
         prefill: {
           name: formData.name,
           email: formData.email,
@@ -63,17 +66,32 @@ const CheckoutPage = () => {
         theme: {
           color: "#121212",
         },
-        handler: (response) => {
-          // Optional: Handle success response if needed
-          console.log("Payment Success:", response);
+        handler: async function (response) {
+          // 2. Verify Payment on Backend
+          const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+          } = response;
+
+          await axios.post(`${BackendUrl}/payment-verification`, {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            user_id: userInfo.id,
+            order_id,
+            amount,
+          });
+
           alert("Payment Successful! 🎉");
+          window.location.href = `/paymentsuccess?reference=${razorpay_payment_id}`;
         },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
 
-      rzp.on("payment.failed", (response) => {
+      rzp.on("payment.failed", function (response) {
         console.error("Payment Failed:", response.error);
         alert("Payment Failed. Please try again.");
       });
@@ -83,13 +101,12 @@ const CheckoutPage = () => {
     }
   };
 
-  // Form Submission Handler
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.paymentMethod === "razorpay") {
-      checkoutHandler(totalAmount); // Trigger Razorpay payment
+      checkoutHandler(totalAmount);
     } else {
-      alert("Order Placed Successfully! 🎉"); // Handle other payment methods
+      alert("Order Placed Successfully! 🎉");
       console.log("User Details:", formData);
     }
   };
@@ -99,14 +116,12 @@ const CheckoutPage = () => {
       <div className="max-w-6xl w-full bg-white rounded-xl shadow-xl overflow-hidden">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-3">
-            {/* Left Section (Form) */}
             <div className="md:col-span-2 p-4 sm:p-6 md:p-8 border-r border-gray-200 bg-gray-50">
               <h2 className="text-2xl sm:text-3xl font-semibold text-center text-gray-800">
                 🛒 Checkout
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
-                {/* Personal Info */}
                 <div className="sm:col-span-2">
                   <h3 className="text-lg font-medium text-gray-700">
                     Personal Information
@@ -168,7 +183,7 @@ const CheckoutPage = () => {
                     className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
                   />
                 </div>
-                Address
+
                 <div className="sm:col-span-2 mt-4">
                   <h3 className="text-lg font-medium text-gray-700">
                     Shipping Address
@@ -216,7 +231,7 @@ const CheckoutPage = () => {
                     className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
                   />
                 </div>
-                {/* Payment Method */}
+
                 <div className="sm:col-span-2 mt-4">
                   <h3 className="text-lg font-medium text-gray-700">
                     Payment Method
@@ -236,7 +251,6 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {/* Right Section (Price Details) */}
             {cart.length > 0 && (
               <div className="p-4 sm:p-6 bg-white">
                 <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg sticky top-10 border border-gray-200">
@@ -271,7 +285,7 @@ const CheckoutPage = () => {
                   </div>
 
                   <button
-                    type="submit" // Changed to submit to trigger form
+                    type="submit"
                     className="w-full mt-4 sm:mt-5 py-2 sm:py-3 bg-orange-500 text-white rounded-lg font-semibold text-lg hover:bg-orange-600 transition "
                   >
                     ✅ Continue to Pay
