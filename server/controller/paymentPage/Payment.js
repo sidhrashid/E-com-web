@@ -8,7 +8,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ 1. Create Razorpay Order
+// =================================== Create Razorpay Order ===================================
 const checkout = async (req, res) => {
   try {
     const { amount } = req.body;
@@ -32,7 +32,7 @@ const checkout = async (req, res) => {
   }
 };
 
-// ✅ 2. Manual Payment Verification
+// =================================== Verify Payment and Save to DB ===================================
 const paymentVerification = async (req, res) => {
   try {
     const {
@@ -79,8 +79,8 @@ const paymentVerification = async (req, res) => {
         "Completed",
       ];
 
-      await db.query(paymentQuery, values);
-      console.log("💾 Payment recorded in DB");
+      const result = await db.query(paymentQuery, values);
+      console.log("Payment recorded in DB");
 
       return res.redirect(
         `https://e-com-web-n1aw.onrender.com/paymentsuccess?reference=${razorpay_payment_id}`
@@ -89,7 +89,7 @@ const paymentVerification = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
   } catch (error) {
-    console.error("Payment verification error:", error.message);
+    console.error("Payment verification error:", error.message, error.stack);
     res.status(500).json({ success: false, message: "Payment verification failed" });
   }
 };
@@ -98,3 +98,5 @@ module.exports = {
   checkout,
   paymentVerification,
 };
+
+

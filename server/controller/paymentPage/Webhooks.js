@@ -16,15 +16,16 @@ const razorpayWebhook = async (req, res) => {
     console.log("✅ Webhook verified successfully");
 
     const event = req.body.event;
+    const payload = req.body.payload.payment.entity;
 
     if (event === "payment.captured") {
-      const payload = req.body.payload.payment.entity;
       const {
         order_id,
         id: payment_id,
         amount,
         status,
         method,
+        email,
       } = payload;
 
       try {
@@ -42,7 +43,7 @@ const razorpayWebhook = async (req, res) => {
 
         const values = [
           order_id || null,
-          null,
+          null, // user_id not available from webhook
           method || "razorpay",
           status || "captured",
           payment_id,
@@ -53,7 +54,7 @@ const razorpayWebhook = async (req, res) => {
         await db.query(insertQuery, values);
         console.log("💾 Webhook: Payment saved to DB");
       } catch (err) {
-        console.error("❌ Webhook DB Insert Error:", err.message);
+        console.error("Webhook DB Insert Error:", err.message);
       }
     }
 
