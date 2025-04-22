@@ -3,7 +3,6 @@ const db = require("../../connection/Connection");
 
 const razorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-
   const signature = req.headers["x-razorpay-signature"];
   const body = JSON.stringify(req.body);
 
@@ -25,34 +24,42 @@ const razorpayWebhook = async (req, res) => {
         amount,
         status,
         method,
-        email,
       } = payload;
 
       try {
-        const insertQuery = `
-          INSERT INTO payments (
-            order_id,
-            user_id,
-            payment_method,
-            payment_status,
-            transaction_id,
-            amount,
-            status
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `;
+        const check = await db.query(
+          "SELECT * FROM payments WHERE transaction_id = $1",
+          [payment_id]
+        );
 
-        const values = [
-          order_id || null,
-          null, // user_id not available from webhook
-          method || "razorpay",
-          status || "captured",
-          payment_id,
-          amount / 100,
-          "Completed",
-        ];
+        if (check.rows.length === 0) {
+          const insertQuery = `
+            INSERT INTO payments (
+              order_id,
+              user_id,
+              payment_method,
+              payment_status,
+              transaction_id,
+              amount,
+              status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `;
 
-        await db.query(insertQuery, values);
-        console.log("💾 Webhook: Payment saved to DB");
+          const values = [
+            order_id || null,
+            null,
+            method || "razorpay",
+            status || "captured",
+            payment_id,
+            amount / 100,
+            "Completed",
+          ];
+
+          await db.query(insertQuery, values);
+          console.log("💾 Webhook: Payment saved to DB");
+        } else {
+          console.log("⚠️ Webhook: Payment already exists");
+        }
       } catch (err) {
         console.error("Webhook DB Insert Error:", err.message);
       }

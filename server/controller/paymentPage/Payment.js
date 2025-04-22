@@ -54,7 +54,6 @@ const checkout = async (req, res) => {
   }
 };
 
-
 // =================================== Verify Payment and Save to DB ===================================
 const paymentVerification = async (req, res) => {
   try {
@@ -67,8 +66,6 @@ const paymentVerification = async (req, res) => {
       amount,
     } = req.body;
 
-    console.log("Payment Verification Called", req.body);
-
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -76,34 +73,43 @@ const paymentVerification = async (req, res) => {
       .digest("hex");
 
     const isAuthentic = expectedSignature === razorpay_signature;
-    console.log("Is Authentic:", isAuthentic);
 
     if (isAuthentic) {
-      const paymentQuery = `
-        INSERT INTO payments (
-          order_id,
-          user_id,
-          payment_method,
-          payment_status,
-          transaction_id,
-          amount,
-          status
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `;
+      // ✅ Check for duplicate transaction
+      const existing = await db.query(
+        "SELECT * FROM payments WHERE transaction_id = $1",
+        [razorpay_payment_id]
+      );
 
-      const values = [
-        order_id || null,
-        user_id || null,
-        "razorpay",
-        "Completed",
-        razorpay_payment_id,
-        amount || null,
-        "Completed",
-      ];
+      if (existing.rows.length === 0) {
+        const paymentQuery = `
+          INSERT INTO payments (
+            order_id,
+            user_id,
+            payment_method,
+            payment_status,
+            transaction_id,
+            amount,
+            status
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `;
 
-      const result = await db.query(paymentQuery, values);
-      console.log("Payment recorded in DB");
+        const values = [
+          order_id || null,
+          user_id || null,
+          "razorpay",
+          "Completed",
+          razorpay_payment_id,
+          amount || null,
+          "Completed",
+        ];
+
+        await db.query(paymentQuery, values);
+        console.log("💾 Payment recorded in DB");
+      } else {
+        console.log("⚠️ Payment already exists in DB");
+      }
 
       return res.redirect(
         `https://e-com-web-n1aw.onrender.com/paymentsuccess?reference=${razorpay_payment_id}`
@@ -112,7 +118,7 @@ const paymentVerification = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
   } catch (error) {
-    console.error("Payment verification error:", error.message, error.stack);
+    console.error("Payment verification error:", error.message);
     res.status(500).json({ success: false, message: "Payment verification failed" });
   }
 };
@@ -120,6 +126,4 @@ const paymentVerification = async (req, res) => {
 module.exports = {
   checkout,
   paymentVerification,
-}; 
-
-
+};
