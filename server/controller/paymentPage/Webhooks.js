@@ -17,52 +17,54 @@ const razorpayWebhook = async (req, res) => {
     const event = req.body.event;
     const payload = req.body.payload.payment.entity;
 
-    if (event === "payment.captured") {
-      const {
-        order_id,
-        id: payment_id,
-        amount,
-        status,
-        method,
-      } = payload;
+    const {
+      order_id,
+      id: payment_id,
+      amount,
+      status: razorpay_status,
+      method,
+    } = payload;
 
-      try {
-        const check = await db.query(
-          "SELECT * FROM payments WHERE transaction_id = $1",
-          [payment_id]
-        );
+    try {
+      const check = await db.query(
+        "SELECT * FROM payments WHERE transaction_id = $1",
+        [payment_id]
+      );
 
-        if (check.rows.length === 0) {
-          const insertQuery = `
-            INSERT INTO payments (
-              order_id,
-              user_id,
-              payment_method,
-              payment_status,
-              transaction_id,
-              amount,
-              status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `;
+      if (check.rows.length === 0) {
+        const insertQuery = `
+          INSERT INTO payments (
+            order_id,
+            user_id,
+            payment_method,
+            payment_status,
+            transaction_id,
+            amount,
+            status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `;
 
-          const values = [
-            order_id || null,
-            null,
-            method || "razorpay",
-            status || "captured",
-            payment_id,
-            amount / 100,
-            "Completed",
-          ];
+        // ✅ Map Razorpay status to your own custom status
+        const finalStatus =
+          razorpay_status === "captured" ? "Completed" : "Failed";
 
-          await db.query(insertQuery, values);
-          console.log("💾 Webhook: Payment saved to DB");
-        } else {
-          console.log("⚠️ Webhook: Payment already exists");
-        }
-      } catch (err) {
-        console.error("Webhook DB Insert Error:", err.message);
+        const values = [
+          order_id || null,
+          null, // user_id Razorpay webhook se nahi milta
+          method || "razorpay",
+          razorpay_status || "captured",
+          payment_id,
+          amount / 100,
+          finalStatus,
+        ];
+
+        await db.query(insertQuery, values);
+        console.log("💾 Webhook: Payment saved to DB");
+      } else {
+        console.log("⚠️ Webhook: Payment already exists");
       }
+    } catch (err) {
+      console.error("Webhook DB Insert Error:", err.message);
     }
 
     res.status(200).json({ status: "ok" });

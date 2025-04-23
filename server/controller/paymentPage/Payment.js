@@ -64,6 +64,8 @@ const paymentVerification = async (req, res) => {
       user_id,
       order_id,
       amount,
+      razorpay_status, // Razorpay status
+      payment_method,  // Payment method
     } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -95,14 +97,16 @@ const paymentVerification = async (req, res) => {
           VALUES ($1, $2, $3, $4, $5, $6, $7)
         `;
 
+        const finalStatus = razorpay_status === "captured" ? "Completed" : "Failed";
+
         const values = [
           order_id || null,
           user_id || null,
-          "razorpay",
-          payment_status ,
+          payment_method || "razorpay",  // Dynamically added payment method
+          razorpay_status || "captured",  // Dynamically added Razorpay status
           razorpay_payment_id,
           amount || null,
-          "Completed",
+          finalStatus,
         ];
 
         await db.query(paymentQuery, values); 
