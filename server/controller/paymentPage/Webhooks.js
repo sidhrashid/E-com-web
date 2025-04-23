@@ -1,7 +1,6 @@
 const crypto = require("crypto");
 const db = require("../../connection/Connection");
 const axios = require("axios");
-require("dotenv").config();
 
 const razorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -65,18 +64,13 @@ const razorpayWebhook = async (req, res) => {
           ];
 
           await db.query(insertQuery, values);
-          console.log("💾 Webhook: Payment saved to DB");
-          console.log("🧾 Status:", status);
-          console.log("💳 Method:", method);
         } else {
           console.log("⚠ Webhook: Payment already exists");
         }
       } catch (err) {
         console.error("Webhook Razorpay/API Error:", err.message);
       }
-    }
-
-    else if (event === "payment.failed" && payload.payment) {
+    } else if (event === "payment.failed" && payload.payment) {
       const failedPayment = payload.payment.entity;
       const {
         order_id,
@@ -114,13 +108,16 @@ const razorpayWebhook = async (req, res) => {
         await db.query(insertQuery, values);
         console.log("💾 Webhook: Failed payment saved to DB");
       } catch (err) {
-        console.error("Webhook Razorpay/Error saving failed payment:", err.message);
+        console.error(
+          "Webhook Razorpay/Error saving failed payment:",
+          err.message
+        );
       }
-    }
-
-    else {
+    } else {
       console.log(`⚠ Event received: ${event}`);
-      console.log("❗ Payment entity not available or not a captured/failure event");
+      console.log(
+        "❗ Payment entity not available or not a captured/failure event"
+      );
     }
 
     return res.status(200).json({ status: "ok" });
