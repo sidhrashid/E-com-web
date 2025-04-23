@@ -16,6 +16,7 @@ const razorpayWebhook = async (req, res) => {
     console.log("✅ Webhook verified successfully");
 
     const { event, payload } = req.body;
+    
 
     if (event === "payment.captured" && payload.payment) {
       const payment = payload.payment.entity;
@@ -31,6 +32,7 @@ const razorpayWebhook = async (req, res) => {
             },
           }
         );
+        
 
         const paymentData = razorpayRes.data.items[0];
         const { method, status } = paymentData;
@@ -42,20 +44,20 @@ const razorpayWebhook = async (req, res) => {
 
         if (check.rows.length === 0) {
           const insertQuery = `
-            INSERT INTO payments (
-              order_id,
-              user_id,
-              payment_method,f
-              payment_status,
-              transaction_id,
-              amount,
-              status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `;
+            INSERT INTO payments (
+              order_id,
+              user_id,
+              payment_method,
+              payment_status,
+              transaction_id,
+              amount,
+              status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `;
 
           const values = [
             order_id || null,
-            user_id || null, // You might want to fetch user_id if available
+            user_id,
             method,
             status,
             payment_id,
@@ -64,7 +66,6 @@ const razorpayWebhook = async (req, res) => {
           ];
 
           await db.query(insertQuery, values);
-          console.log("💾 Webhook: Payment Completed and saved to DB");
         } else {
           console.log("⚠ Webhook: Payment already exists");
         }
@@ -84,39 +85,30 @@ const razorpayWebhook = async (req, res) => {
       try {
         console.log("❌ Payment failed:", error_code, error_description);
 
-        const check = await db.query(
-          "SELECT * FROM payments WHERE transaction_id = $1",
-          [payment_id]
-        );
+        const insertQuery = `
+          INSERT INTO payments (
+            order_id,
+            user_id,
+            payment_method,
+            payment_status,
+            transaction_id,
+            amount,
+            status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `;
 
-        if (check.rows.length === 0) {
-          const insertQuery = `
-            INSERT INTO payments (
-              order_id,
-              user_id,
-              payment_method,
-              payment_status,
-              transaction_id,
-              amount,
-              status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `;
+        const values = [
+          order_id || null,
+          null,
+          "N/A",
+          "Failed",
+          payment_id,
+          amount / 100,
+          "Failed",
+        ];
 
-          const values = [
-            order_id || null,
-            null, // You might want to fetch user_id if available during failure
-            "N/A",
-            "Failed",
-            payment_id,
-            amount / 100,
-            "Failed",
-          ];
-
-          await db.query(insertQuery, values);
-          console.log("💾 Webhook: Failed payment saved to DB");
-        } else {
-          console.log("⚠ Webhook: Failed Payment entry already exists");
-        }
+        await db.query(insertQuery, values);
+        console.log("💾 Webhook: Failed payment saved to DB");
       } catch (err) {
         console.error(
           "Webhook Razorpay/Error saving failed payment:",
