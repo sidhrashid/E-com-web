@@ -64,8 +64,8 @@ const paymentVerification = async (req, res) => {
       user_id,
       order_id,
       amount,
-      razorpay_status, // Razorpay status
-      payment_method,  // Payment method
+      razorpay_status, 
+      payment_method, 
     } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -77,7 +77,7 @@ const paymentVerification = async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      // ✅ Check for duplicate transaction
+
       const existing = await db.query(
         "SELECT * FROM payments WHERE transaction_id = $1",
         [razorpay_payment_id]
@@ -102,8 +102,8 @@ const paymentVerification = async (req, res) => {
         const values = [
           order_id || null,
           user_id || null,
-          payment_method || "razorpay",  // Dynamically added payment method
-          razorpay_status || "captured",  // Dynamically added Razorpay status
+          payment_method || "razorpay",  
+          razorpay_status || "captured",  
           razorpay_payment_id,
           amount || null,
           finalStatus,

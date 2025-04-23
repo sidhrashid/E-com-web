@@ -16,6 +16,7 @@ const razorpayWebhook = async (req, res) => {
     console.log("✅ Webhook verified successfully");
 
     const { event, payload } = req.body;
+    
 
     if (event === "payment.captured" && payload.payment) {
       const payment = payload.payment.entity;
@@ -31,6 +32,7 @@ const razorpayWebhook = async (req, res) => {
             },
           }
         );
+        
 
         const paymentData = razorpayRes.data.items[0];
         const { method, status } = paymentData;
@@ -55,7 +57,7 @@ const razorpayWebhook = async (req, res) => {
 
           const values = [
             order_id || null,
-            null,
+            user_id,
             method,
             status,
             payment_id,
