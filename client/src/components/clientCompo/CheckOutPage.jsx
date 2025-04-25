@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
-import { useCart } from "../../context/cart";
+import { useCart } from "../../context/Cart";
 import axios from "axios";
 
 const BackendUrl = "https://e-com-web-n1aw.onrender.com";
