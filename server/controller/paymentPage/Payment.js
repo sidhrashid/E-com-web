@@ -1,17 +1,25 @@
+const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const db = require("../../connection/Connection");
 const axios = require("axios");
+require("dotenv").config();
 
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
+// Create Razorpay Order
 const checkout = async (req, res) => {
   try {
     const { user_id, amount, items } = req.body;
 
+    // Validate inputs
     if (!user_id || !amount || !items || !Array.isArray(items)) {
       return res.status(400).json({ success: false, message: "Invalid input" });
     }
 
-    // Insert order in DB
+    // Insert into orders table
     const orderInsertQuery = `
       INSERT INTO orders (user_id, total_amount)
       VALUES ($1, $2)
@@ -20,7 +28,7 @@ const checkout = async (req, res) => {
     const orderResult = await db.query(orderInsertQuery, [user_id, amount]);
     const order_id = orderResult.rows[0].id;
 
-    // Insert all order items
+    // Insert into order_items table
     const itemInsertPromises = items.map((item) => {
       return db.query(
         `INSERT INTO order_items (
@@ -31,10 +39,23 @@ const checkout = async (req, res) => {
     });
     await Promise.all(itemInsertPromises);
 
-    // Respond with order_id only (no Razorpay order)
+    // Create Razorpay Order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Number(amount * 100),
+      currency: "INR",
+      receipt: `order_rcptid_${order_id}`,
+      notes: {
+        user_id: user_id.toString(),
+        order_id: order_id.toString(),
+      },
+    });
+
+    // Respond to frontend
     res.status(200).json({
       success: true,
+      razorpayOrder,
       order_id,
+      payment_order_id: razorpayOrder.id,
     });
   } catch (error) {
     console.error("Checkout Error:", error.message);
@@ -42,10 +63,11 @@ const checkout = async (req, res) => {
   }
 };
 
-
+// Verify Payment and Save to DB
 const paymentVerification = async (req, res) => {
   try {
     const {
+      razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       user_id,
@@ -53,17 +75,17 @@ const paymentVerification = async (req, res) => {
       amount,
     } = req.body;
 
-    // Signature verify without order_id
-    const body = razorpay_payment_id;
+    // Validate signature
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest("hex");
 
     if (expectedSignature === razorpay_signature) {
-      // Fetch payment details directly using payment_id
+      // Get payment details from Razorpay
       const paymentRes = await axios.get(
-        `https://api.razorpay.com/v1/payments/${razorpay_payment_id}`,
+        `https://api.razorpay.com/v1/orders/${razorpay_order_id}/payments`,
         {
           auth: {
             username: process.env.RAZORPAY_KEY_ID,
@@ -72,12 +94,12 @@ const paymentVerification = async (req, res) => {
         }
       );
 
-      const paymentData = paymentRes.data;
+      const paymentData = paymentRes.data.items[0];
       const payment_method = paymentData.method;
       const payment_status = paymentData.status;
       const status = payment_status === "captured" ? "Completed" : "Failed";
 
-      // Check duplicate
+      // Check for duplicate transaction
       const existing = await db.query(
         "SELECT * FROM payments WHERE transaction_id = $1",
         [razorpay_payment_id]
@@ -101,7 +123,10 @@ const paymentVerification = async (req, res) => {
         ];
         await db.query(paymentQuery, values);
 
-        console.log("💾 Payment saved to DB:", razorpay_payment_id);
+        console.log("💾 Payment recorded in DB");
+        console.log("🧾 Status:", status);
+        console.log("💳 Method:", payment_method);
+        console.log("🆔 Payment ID:", razorpay_payment_id);
       } else {
         console.log("⚠️ Payment already exists in DB");
       }
