@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
-import { useCart } from "../../context/Cart";
+import { useCart } from "../../context/cart";
 import axios from "axios";
 
 const BackendUrl = "https://e-com-web-n1aw.onrender.com";
@@ -28,37 +29,20 @@ const CheckoutPage = () => {
     }
   }, []);
 
-  const handleChange = async (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (name === "zip" && value.length === 6) {
-      try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
-        const data = await res.json();
-
-        if (data[0].Status === "Success") {
-          const postOffice = data[0].PostOffice[0];
-          setFormData((prev) => ({
-            ...prev,
-            city: prev.city || postOffice.District,
-            state: prev.state || postOffice.State,
-          }));
-        }
-      } catch (error) {
-        console.error("PIN Code Lookup Failed:", error);
-      }
-    }
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const checkoutHandler = async (amount) => {
     try {
+      // if (!userInfo ) {
+      //   alert("Please log in to proceed with payment.");
+      //   return;
+      // }
+
+      // Create Razorpay Order & Save Order Data to DB
       const {
-        data: { razorpayOrder, order_id },
+        data: { razorpayOrder, order_id, payment_order_id },
       } = await axios.post(`${BackendUrl}/checkout`, {
         user_id: userInfo,
         amount,
@@ -83,12 +67,17 @@ const CheckoutPage = () => {
         },
         notes: {
           address: formData.address,
+          user_id: userInfo.toString(),
+          order_id: order_id.toString(),
         },
         theme: {
           color: "#121212",
         },
         handler: async function (response) {
-          const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
+          // Verify Payment on Backend
+          const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+            response;
+
           await axios.post(`${BackendUrl}/payment-verification`, {
             razorpay_order_id,
             razorpay_payment_id,
@@ -106,24 +95,9 @@ const CheckoutPage = () => {
       const rzp = new window.Razorpay(options);
       rzp.open();
 
-      // Handle payment failure
-      rzp.on("payment.failed", async function (response) {
+      rzp.on("payment.failed", function (response) {
         console.error("Payment Failed:", response.error);
         alert("Payment Failed. Please try again.");
-
-        try {
-          await axios.post(`${BackendUrl}/payment-failed`, {
-            order_id,
-            user_id: userInfo,
-            payment_method: "razorpay",
-            payment_status: "Failed",
-            transaction_id: response.error.metadata.payment_id || null,
-            amount,
-            status: "Failed",
-          });
-        } catch (err) {
-          console.error("Failed to log payment failure:", err);
-        }
       });
     } catch (error) {
       console.error("Checkout Error:", error.message);
@@ -152,6 +126,7 @@ const CheckoutPage = () => {
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                {/* Personal Info */}
                 <div className="sm:col-span-2">
                   <h3 className="text-xl font-bold text-gray-800 border-b pb-2">
                     Personal Information
@@ -159,86 +134,110 @@ const CheckoutPage = () => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">Full Name</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    placeholder="John Doe"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">Phone Number</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    Phone Number
+                  </label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    placeholder="123-456-7890"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
+                {/* Shipping Address */}
                 <div className="sm:col-span-2 mt-8">
-                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">Shipping Address</h3>
+                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">
+                    Shipping Address
+                  </h3>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block mb-1 text-sm font-medium text-gray-700">Street Address</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    Street Address
+                  </label>
                   <input
                     type="text"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    placeholder="House No. Street Name, Area, Building Name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">ZIP Code</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    ZIP Code
+                  </label>
                   <input
                     type="text"
                     name="zip"
                     value={formData.zip}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    placeholder="10001"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">City</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    City
+                  </label>
                   <input
                     type="text"
                     name="city"
                     value={formData.city}
-                    readOnly
-                    className="bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded-md"
+                    onChange={handleChange}
+                    required
+                    placeholder="New York"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block mb-1 text-sm font-medium text-gray-700">State</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    State
+                  </label>
                   <input
                     type="text"
                     name="state"
                     value={formData.state}
-                    readOnly
-                    className="bg-gray-100 cursor-not-allowed w-full px-4 py-2 border border-gray-300 rounded-md"
+                    onChange={handleChange}
+                    required
+                    placeholder="Your State"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
+                {/* Payment Method */}
                 <div className="sm:col-span-2 mt-8">
-                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">Payment Method</h3>
+                  <h3 className="text-xl font-bold text-gray-800 border-b pb-2">
+                    Payment Method
+                  </h3>
                   <select
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleChange}
-                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md"
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="razorpay">Razorpay</option>
                     <option value="credit_card">Credit Card</option>
@@ -259,7 +258,11 @@ const CheckoutPage = () => {
                   <div className="flex justify-between font-medium lg:text-lg mb-3">
                     <span>Price ({cart.length} items)</span>
                     <span className="font-semibold">
-                      ₹{cart.reduce((acc, item) => acc + item.price * item.quantity, 0)}
+                      ₹
+                      {cart.reduce(
+                        (acc, item) => acc + item.price * item.quantity,
+                        0
+                      )}
                     </span>
                   </div>
 
@@ -280,7 +283,7 @@ const CheckoutPage = () => {
 
                   <button
                     type="submit"
-                    className="w-full mt-4 sm:mt-5 py-2 sm:py-3 bg-orange-500 text-white rounded-lg font-semibold text-lg hover:bg-orange-600 transition"
+                    className="w-full mt-4 sm:mt-5 py-2 sm:py-3 bg-orange-500 text-white rounded-lg font-semibold text-lg hover:bg-orange-600 transition "
                   >
                     ✅ Continue to Pay
                   </button>
