@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const fs = require("fs");
-const db = require("../../connection/connection");
+const db = require("../../connection/Connection");
 require("dotenv").config();
 
 const logStream = fs.createWriteStream("webhook.log", { flags: "a" });
