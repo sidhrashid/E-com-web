@@ -1,130 +1,113 @@
 const crypto = require("crypto");
-const db = require("../../connection/Connection");
-const axios = require("axios");
+const fs = require("fs");
+const db = require("../../connection/connection");
+require("dotenv").config();
+
+const logStream = fs.createWriteStream("webhook.log", { flags: "a" });
+const logToFile = (message) => {
+  logStream.write(`${new Date().toISOString()} - ${message}\n`);
+  console.log(message);
+};
 
 const razorpayWebhook = async (req, res) => {
+  logToFile("Webhook received: " + JSON.stringify(req.body));
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   const signature = req.headers["x-razorpay-signature"];
-  const body = JSON.stringify(req.body);
+  const body = Buffer.from(JSON.stringify(req.body));
 
   const expectedSignature = crypto
     .createHmac("sha256", secret)
     .update(body)
     .digest("hex");
 
+  logToFile("Received Signature: " + signature);
+  logToFile("Expected Signature: " + expectedSignature);
+
   if (signature === expectedSignature) {
-    console.log("✅ Webhook verified successfully");
+    logToFile("✅ Webhook verified successfully");
+    const event = req.body.event;
+    const payload = req.body.payload.payment.entity;
 
-    const { event, payload } = req.body;
-    
-
-    if (event === "payment.captured" && payload.payment) {
-      const payment = payload.payment.entity;
-      const { order_id, id: payment_id, amount } = payment;
+    if (event === "payment.captured" || event === "payment.failed") {
+      const {
+        id: payment_id,
+        amount,
+        method: payment_method,
+        status: payment_status,
+        notes,
+      } = payload;
 
       try {
-        const razorpayRes = await axios.get(
-          `https://api.razorpay.com/v1/orders/${order_id}/payments`,
-          {
-            auth: {
-              username: process.env.RAZORPAY_KEY_ID,
-              password: process.env.RAZORPAY_KEY_SECRET,
-            },
-          }
-        );
-        
+        const order_id = notes?.order_id ? parseInt(notes.order_id) : null;
+        const user_id = notes?.user_id ? parseInt(notes.user_id) : null;
 
-        const paymentData = razorpayRes.data.items[0];
-        const { method, status } = paymentData;
+        if (!order_id || !user_id) {
+          logToFile(`Missing notes: order_id=${order_id}, user_id=${user_id}`);
+          return res.status(200).json({ status: "ok" });
+        }
+
+        const orderCheck = await db.query(
+          "SELECT user_id FROM orders WHERE id = $1",
+          [order_id]
+        );
+        if (!orderCheck.rows.length) {
+          logToFile("Order not found for order_id: " + order_id);
+          return res.status(200).json({ status: "ok" });
+        }
+
+        const status = payment_status === "captured" ? "Completed" : "Failed";
 
         const check = await db.query(
           "SELECT * FROM payments WHERE transaction_id = $1",
           [payment_id]
         );
+        logToFile("DB Check Result: " + JSON.stringify(check.rows));
 
         if (check.rows.length === 0) {
           const insertQuery = `
             INSERT INTO payments (
-              order_id,
-              user_id,
-              payment_method,
-              payment_status,
-              transaction_id,
-              amount,
-              status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+              order_id, user_id, payment_order_id, payment_method, payment_status,
+              transaction_id, amount, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
           `;
-
           const values = [
-            order_id || null,
-            user_id,
-            method,
-            status,
-            payment_id,
-            amount / 100,
-            "Completed",
-          ];
-
-          await db.query(insertQuery, values);
-        } else {
-          console.log("⚠ Webhook: Payment already exists");
-        }
-      } catch (err) {
-        console.error("Webhook Razorpay/API Error:", err.message);
-      }
-    } else if (event === "payment.failed" && payload.payment) {
-      const failedPayment = payload.payment.entity;
-      const {
-        order_id,
-        id: payment_id,
-        error_code,
-        error_description,
-        amount,
-      } = failedPayment;
-
-      try {
-        console.log("❌ Payment failed:", error_code, error_description);
-
-        const insertQuery = `
-          INSERT INTO payments (
             order_id,
             user_id,
+            null, // Removed payment_order_id, or you can keep as null
             payment_method,
             payment_status,
-            transaction_id,
-            amount,
-            status
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `;
-
-        const values = [
-          order_id || null,
-          null,
-          "N/A",
-          "Failed",
-          payment_id,
-          amount / 100,
-          "Failed",
-        ];
-
-        await db.query(insertQuery, values);
-        console.log("💾 Webhook: Failed payment saved to DB");
+            payment_id,
+            amount / 100,
+            status,
+          ];
+          await db.query(insertQuery, values);
+          logToFile("💾 Payment saved to DB");
+        } else {
+          const updateQuery = `
+            UPDATE payments
+            SET payment_method = $1, payment_status = $2, amount = $3, status = $4
+            WHERE transaction_id = $5
+          `;
+          const updateValues = [
+            payment_method,
+            payment_status,
+            amount / 100,
+            status,
+            payment_id,
+          ];
+          await db.query(updateQuery, updateValues);
+          logToFile("🔄 Payment updated in DB");
+        }
       } catch (err) {
-        console.error(
-          "Webhook Razorpay/Error saving failed payment:",
-          err.message
-        );
+        logToFile("Webhook Error: " + err.message + "\nStack: " + err.stack);
       }
     } else {
-      console.log(`⚠ Event received: ${event}`);
-      console.log(
-        "❗ Payment entity not available or not a captured/failure event"
-      );
+      logToFile("ℹ️ Unhandled event: " + event);
     }
 
     return res.status(200).json({ status: "ok" });
   } else {
-    console.warn("❌ Webhook signature mismatch");
+    logToFile("❌ Webhook signature mismatch");
     return res.status(400).json({ error: "Invalid signature" });
   }
 };

@@ -16,6 +16,8 @@ const SignUp = () => {
     email_or_phone: "",
     password: "",
     otp: "",
+    picture: "",
+
   });
 
   const handleInputChange = (e) => {

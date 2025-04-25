@@ -18,14 +18,16 @@ const transporter = nodemailer.createTransport({
 const sendOtp = async (req, res) => {
   try {
     const { email_or_phone } = req.body;
-    console.log(req.body);
+    console.log(req.body)
     if (!email_or_phone) {
       return res.status(400).json({ message: "Email is required." });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
 
+
     otpStore.set(email_or_phone, { otp, expiresAt: Date.now() + 300000 }); // Store OTP for 5 minutes
+
 
     const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
@@ -37,13 +39,13 @@ const sendOtp = async (req, res) => {
       <p>This OTP is valid for 5 minutes only.</p>
       <p>If you didn't request this OTP, please ignore this email.</p>
     </div>
-`;
+`
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email_or_phone,
       subject: "Your OTP Code",
-      html: htmlContent,
+      html: htmlContent
     };
 
     await transporter.sendMail(mailOptions);
@@ -58,41 +60,31 @@ const sendOtp = async (req, res) => {
 const registerNewUser = async (req, res) => {
   try {
     const { username, email_or_phone, password, otp } = req.body;
-    console.log(req.body); // Log incoming request body
+    console.log(req.body)
     if (!username || !email_or_phone || !password || !otp) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Log statements for debugging
-    console.log('All fields are present. Validating OTP...');
-    
+    // Validate OTP
     const storedOtp = otpStore.get(email_or_phone);
     if (!storedOtp || storedOtp.otp !== otp || Date.now() > storedOtp.expiresAt) {
-      console.log('Invalid OTP');
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
+    otpStore.delete(email_or_phone); // Remove OTP after verification
 
-    console.log('OTP Validated. Checking user existence...');
-    
     // Check if user exists
     const checkUserQuery = "SELECT * FROM users WHERE username = $1 OR email_or_phone = $2";
     db.query(checkUserQuery, [username, email_or_phone], async (err, result) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ message: "Database error." });
-      }
+      if (err) return res.status(500).json({ message: "Database error." });
       if (result.rows.length > 0) {
-        console.log('User already exists');
         return res.status(400).json({ message: "Username or Email already exists." });
       }
 
-      console.log('User does not exist. Proceeding with registration...');
-      
       // Hash password & insert user
       const hashPassword = await bcrypt.hash(password, 10);
       db.query(
-        "INSERT INTO users (username, email_or_phone, password, otp) VALUES ($1, $2, $3, $4)",
-        [username, email_or_phone, hashPassword, otp],
+        "INSERT INTO users (username, email_or_phone, password, otp, picture) VALUES ($1, $2, $3, $4, $5)",
+        [username, email_or_phone, hashPassword, otp, "https://t4.ftcdn.net/jpg/11/96/87/65/360_F_1196876506_4StPGnc3zIiJBBky4q3QgYOBtEBSLl2B.jpg"],
         (err) => {
           console.error("Insert error:", err);
           if (err) return res.status(500).json({ message: "Database error occurred." });
@@ -106,25 +98,21 @@ const registerNewUser = async (req, res) => {
   }
 };
 
-
 // User Login
 const loginClientUser = async (req, res) => {
   try {
     const { email_or_phone, password } = req.body;
-    console.log(req.body);
+    console.log(req.body)
     if (!email_or_phone || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email/phone and password are required." });
+      return res.status(400).json({ message: "Email/phone and password are required." });
     }
 
     const query = "SELECT * FROM users WHERE email_or_phone = $1";
     db.query(query, [email_or_phone], async (err, result) => {
       if (err) return res.status(500).json({ message: "Database error." });
-      if (result.rows.length === 0)
-        return res.status(401).json({ message: "Invalid credentials." });
+      if (result.rows.length === 0) return res.status(401).json({ message: "Invalid credentials." });
 
-      const user = result.rows[0];
+      const user = result.rows[0];;
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         return res.status(401).json({ message: "Invalid credentials." });
